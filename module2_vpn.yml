@@ -87,12 +87,28 @@
           - "tunnel protection ipsec profile {{ ipsec.profile_name }}"
       when: dmvpn is defined and dmvpn.enabled == true and ipsec is defined and ipsec.enabled == true
  
-    - name: 4. Cau hinh FHRP (HSRP)
+    - name: 4. Cau hinh FHRP
       cisco.ios.ios_config:
         parents: "interface {{ item.interface }}"
-        lines:
-          - "standby {{ item.group }} ip {{ item.vip }}"
-          - "standby {{ item.group }} priority {{ item.priority }}"
-          - "standby {{ item.group }} preempt"
-      loop: "{{ hsrp }}"
-      when: hsrp is defined and (hsrp | length > 0)
+        lines: |
+          {% if item.protocol == 'hsrp' %}
+          standby {{ item.group }} ip {{ item.vip }}
+          standby {{ item.group }} priority {{ item.priority }}
+          standby {{ item.group }} preempt
+          {% elif item.protocol == 'vrrp' %}
+          vrrp {{ item.group }} ip {{ item.vip }}
+          vrrp {{ item.group }} priority {{ item.priority }}
+          vrrp {{ item.group }} preempt
+          {% if item.vrrp_adv != None %}
+          vrrp {{ item.group }} timers advertise msec {{ item.vrrp_adv }}
+          {% endif %}
+          {% elif item.protocol == 'glbp' %}
+          glbp {{ item.group }} ip {{ item.vip }}
+          glbp {{ item.group }} priority {{ item.priority }}
+          glbp {{ item.group }} preempt
+          {% if item.glbp_lb != None %}
+          glbp {{ item.group }} load-balancing {{ item.glbp_lb }}
+          {% endif %}
+          {% endif %}
+      loop: "{{ fhrp }}"
+      when: fhrp is defined and (fhrp | length > 0)

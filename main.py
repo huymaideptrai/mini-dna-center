@@ -163,12 +163,15 @@ class DMVPNConfig(BaseModel):
     hub_physical_ip: Optional[str]
     nhrp_authen: Optional[str] = None
 
-class HsrpItem(BaseModel):
+class FhrpItem(BaseModel):
+    protocol: Literal["hsrp", "vrrp", "glbp"]
     interface: str
     group: int
     vip: str
     priority: int
     preempt: str
+    vrrp_adv: Optional[int] = None
+    glbp_lb: Optional[str] = None
 
 
 class Module3Config(BaseModel):
@@ -176,7 +179,7 @@ class Module3Config(BaseModel):
     gre: Optional[GREConfig] = None
     ipsec: Optional[IPsecConfig] = None    # Khai báo Schema IPsec mới
     dmvpn: Optional[DMVPNConfig] = None
-    hsrp: List[HsrpItem] = []
+    fhrp: List[FhrpItem] = []
 
 @app.post("/api/config/module3-vpn")
 def config_module3(data: Module3Config):
@@ -192,9 +195,6 @@ def config_module3(data: Module3Config):
 # ==========================================
 # MODULE 4: SERVICES (NAT NÂNG CAO, QoS ISP, IP SLA)
 # ==========================================
-class NATInterface(BaseModel):
-    name: str
-    type: str                 # "inside" hoặc "outside"
 
 class PatAcl(BaseModel):
     acl_name: str
@@ -202,16 +202,22 @@ class PatAcl(BaseModel):
     acl_ip: str
     acl_mask: str
 
-class NATStaticRule(BaseModel):
-    local_ip: str             # IP Server nội bộ
-    global_ip: str
-    port: Optional[str] = None
+class DynamicNat(BaseModel):
+    acl_name: str
+    network: str
+    wildcard: str
 
-class NATConfig(BaseModel):
-    enabled: bool = False
-    interfaces: Optional [List[NATInterface]] = None
-    pat_acl: Optional[PatAcl] = None
-    static_rules: Optional[List[NATStaticRule]] = []
+class StaticNat(BaseModel):
+    inside_ip: str
+    outside_ip: str
+    port: Optional[int] = None
+
+class NatConfig(BaseModel):
+    mode: str
+    inside_interfaces: List[str] = []
+    outside_interfaces: List[str] = []
+    dynamic: DynamicNat
+    static: List[StaticNat] = []
 
 class QoSConfig(BaseModel):
     enabled: bool = False
@@ -238,7 +244,7 @@ class IPSLAConfig(BaseModel):
 
 class Module4Config(BaseModel):
     target_ip: str
-    nat: Optional[NATConfig] = None
+    nat: Optional[NatConfig] = None
     qos: Optional[QoSConfig] = None
     ipsla: Optional[IPSLAConfig] = None
 

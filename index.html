@@ -216,19 +216,26 @@
         <!-- ========================================== -->
         <div id="Mod2" class="tabcontent" style="display: none;">
 
-            <!-- A. DỰ PHÒNG GATEWAY (HSRP) -->
-            <div class="card mb-4 border-secondary shadow-sm mt-3">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0 fw-bold" style="color: #e67e22;">A. DỰ PHÒNG GATEWAY (HSRP)</h5>
-                </div>
-                <div class="card-body">
-                    <div style="background: #fdf2e9; padding: 15px; border-radius: 8px; border: 1px solid #f8c471;">
-                        <p class="small text-muted mb-2"><i>Tạo IP Virtual (Gateway ảo) dự phòng cho mạng LAN.</i></p>
-                        <div id="hsrp-container" class="mb-2"></div>
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="addHsrpRow()">+ Thêm HSRP</button>
-                    </div>
-                </div>
-            </div>
+            <!-- Form HSRP/VRRP/GLBP -->
+<div class="row align-items-end mb-3 pe-3">
+    <div class="col-md-3 mb-2">
+        <label class="form-label small fw-bold text-muted">Protocol</label>
+        <select class="form-select fhrp-protocol" onchange="toggleFhrpFields(this)">
+            <option value="hsrp">HSRP</option>
+            <option value="vrrp">VRRP</option>
+            <option value="glbp">GLBP</option>
+        </select>
+    </div>
+    <div class="col-md-3 mb-2"><label class="form-label small fw-bold text-muted">Interface</label><input type="text" class="form-control fhrp-int" placeholder="VD: G0/1"></div>
+    <div class="col-md-2 mb-2"><label class="form-label small fw-bold text-muted">Group ID</label><input type="number" class="form-control fhrp-grp" value="1"></div>
+    <div class="col-md-4 mb-2"><label class="form-label small fw-bold text-muted">Virtual IP</label><input type="text" class="form-control fhrp-vip" placeholder="VD: 192.168.1.1"></div>
+</div>
+<!-- Các trường mở rộng (ẩn/hiện theo protocol) -->
+<div class="row pe-3 fhrp-extra-fields">
+    <div class="col-md-3 mb-2"><label class="form-label small fw-bold text-muted">Priority</label><input type="number" class="form-control fhrp-pri" value="100"></div>
+    <div class="col-md-3 mb-2 vrrp-only d-none"><label class="form-label small fw-bold text-muted">Adv. Interval (ms)</label><input type="number" class="form-control fhrp-adv" value="1000"></div>
+    <div class="col-md-3 mb-2 glbp-only d-none"><label class="form-label small fw-bold text-muted">Load Balancing</label><select class="form-select fhrp-lb"><option value="round-robin">Round-Robin</option><option value="weighted">Weighted</option></select></div>
+</div>
 
             <!-- KHU VỰC A: IPSEC CRYPTO -->
             <div class="card mb-4 border-secondary shadow-sm">
@@ -298,42 +305,67 @@
         <!-- ========================================== -->
         <div id="Mod3" class="tabcontent" style="display: none;">
 
-            <!-- A. CẤU HÌNH INTERFACE NAT -->
-            <div class="card mb-4 border-secondary shadow-sm">
+            <!-- A. CẤU HÌNH NAT (Gộp Cổng & Luật) -->
+            <div class="card mb-4 border-secondary shadow-sm mt-3">
                 <div class="card-header bg-light">
-                    <h5 class="mb-0 fw-bold">1. Khai Báo Cổng NAT (Interfaces)</h5>
+                    <h5 class="mb-0 fw-bold" style="color: #8e44ad;">A. CẤU HÌNH NAT (Network Address Translation)</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 border-end">
-                            <h6 class="fw-bold text-success mb-3">Cổng Inside (Mạng LAN)</h6>
-                            <div id="inside-int-container">
-                                <div class="row mb-2 inside-row align-items-center">
-                                    <div class="col-10">
-                                        <input type="text" class="form-control" placeholder="VD: GigabitEthernet0/0">
-                                    </div>
-                                    <div class="col-2">
-                                        <button type="button" class="btn btn-danger w-100 fw-bold btn-remove-int">X</button>
-                                    </div>
-                                </div>
+                    
+                    <!-- 1. KHU VỰC CỔNG NAT (Interfaces) -->
+                    <div style="background: #f4ecf7; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d7bde2;">
+                        <h6 class="fw-bold mb-3" style="color: #6c3483;">1. Khai báo Cổng NAT (Interfaces)</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-dark">Cổng Inside (Mạng nội bộ)</label>
+                                <div id="inside-int-container" class="mb-2"></div>
+                                <button type="button" class="btn btn-secondary btn-sm" id="btn_add_inside">+ Thêm Cổng Inside</button>
                             </div>
-                            <button type="button" class="btn btn-outline-success btn-sm mt-2" id="btn_add_inside">+ Thêm cổng Inside</button>
-                        </div>
-                        <div class="col-md-6">
-                            <h6 class="fw-bold text-danger mb-3">Cổng Outside (Mạng WAN)</h6>
-                            <div id="outside-int-container">
-                                <div class="row mb-2 outside-row align-items-center">
-                                    <div class="col-10">
-                                        <input type="text" class="form-control" placeholder="VD: GigabitEthernet0/1">
-                                    </div>
-                                    <div class="col-2">
-                                        <button type="button" class="btn btn-danger w-100 fw-bold btn-remove-int">X</button>
-                                    </div>
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-dark">Cổng Outside (Kết nối Internet)</label>
+                                <div id="outside-int-container" class="mb-2"></div>
+                                <button type="button" class="btn btn-secondary btn-sm" id="btn_add_outside">+ Thêm Cổng Outside</button>
                             </div>
-                            <button type="button" class="btn btn-outline-danger btn-sm mt-2" id="btn_add_outside">+ Thêm cổng Outside</button>
                         </div>
                     </div>
+
+                    <!-- 2. KHU VỰC LUẬT NAT (Rules) -->
+                    <div style="background: #e8daef; padding: 15px; border-radius: 8px; border: 1px solid #c39bd3;">
+                        <h6 class="fw-bold mb-3" style="color: #5b2c6f;">2. Khai báo Luật NAT (Rules)</h6>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark">Chế độ NAT</label>
+                            <select class="form-select border-primary w-50" id="nat_type_select">
+                                <option value="overload">Dynamic NAT (Overload / PAT)</option>
+                                <option value="static">Static NAT (NAT Tĩnh 1-1)</option>
+                            </select>
+                        </div>
+
+                        <!-- Form Dynamic NAT -->
+                        <div id="nat_overload_form">
+                            <div class="row align-items-end">
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label small fw-bold text-muted">Tên ACL (Định nghĩa mạng được NAT)</label>
+                                    <input type="text" class="form-control" id="m3_nat_acl" value="NAT_ACL">
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label small fw-bold text-muted">Network IP</label>
+                                    <input type="text" class="form-control" id="m3_nat_net" placeholder="VD: 192.168.10.0">
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label small fw-bold text-muted">Wildcard Mask</label>
+                                    <input type="text" class="form-control" id="m3_nat_wild" placeholder="VD: 0.0.0.255">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Static NAT (Ẩn mặc định) -->
+                        <div id="nat_static_form" class="d-none mt-3">
+                            <div id="nat-static-container" class="mb-2"></div>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="addNatStaticRow()">+ Thêm Static NAT</button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -397,52 +429,6 @@
                         <div class="col-md-4">
                             <label class="form-label fw-semibold text-danger">Port</label>
                             <input type="text" class="form-control" placeholder="VD: eq 80">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- C. CẤU HÌNH LUẬT NAT -->
-            <div class="card mb-4 border-secondary shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0 fw-bold">3. Khai Báo Luật NAT</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Chọn kiểu NAT</label>
-                            <select class="form-select border-primary" id="nat_type_select">
-                                <option value="overload">NAT Overload (PAT ra Internet)</option>
-                                <option value="static">NAT Tĩnh (Port Forwarding)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="nat_overload_form" class="row bg-light p-3 rounded">
-                        <h6 class="fw-bold mb-3 text-primary">Cấu hình NAT Overload</h6>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Tên/Số ACL áp dụng</label>
-                            <input type="text" class="form-control" placeholder="Nhập tên/số ACL đã tạo ở trên (VD: 100)">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Cổng ra (Outside Interface)</label>
-                            <input type="text" class="form-control" placeholder="VD: GigabitEthernet0/1">
-                        </div>
-                    </div>
-
-                    <div id="nat_static_form" class="row bg-light p-3 rounded d-none">
-                        <h6 class="fw-bold mb-3 text-primary">Cấu hình NAT Tĩnh (1-1)</h6>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">IP Inside (Local Server)</label>
-                            <input type="text" class="form-control" placeholder="VD: 192.168.1.10">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">IP Outside (Public IP)</label>
-                            <input type="text" class="form-control" placeholder="VD: 8.8.8.8">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Port (Bỏ trống = NAT full)</label>
-                            <input type="text" class="form-control" placeholder="VD: 80">
                         </div>
                     </div>
                 </div>

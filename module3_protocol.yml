@@ -6,13 +6,6 @@
     # ==========================================
     # PHAN 1: NAT NÂNG CAO (OVERLOAD & STATIC)
     # ==========================================
-    - name: 1.1 Cau hinh NAT Inside/Outside tren cong
-      cisco.ios.ios_config:
-        parents: "interface {{ item.name }}"
-        lines: "ip nat {{ item.type }}"
-      loop: "{{ nat.interfaces }}"
-      when: nat is defined and nat.enabled == true
-
     - name: 1.2 Cau hinh Named ACL (Cho phep Permit/Deny)
       cisco.ios.ios_config:
         parents: "ip access-list extended {{ nat.acl_name }}"
@@ -20,16 +13,27 @@
       loop: "{{ nat.acl_rules }}"
       when: nat is defined and nat.enabled == true and nat.acl_rules is defined
 
-    - name: 1.3 Cau hinh NAT Overload (PAT)
-      cisco.ios.ios_config:
-        lines: "ip nat inside source list {{ nat.acl_name }} interface {{ nat.outside_interface }} overload"
-      when: nat is defined and nat.enabled == true and nat.acl_name is defined
+- name: 1.1 Cau hinh NAT Inside/Outside tren cong
+  cisco.ios.ios_config:
+    parents: "interface {{ item.name }}"
+    lines: "ip nat {{ item.type }}"
+  loop: "{{ nat.interfaces }}"
+  when: nat is defined and nat.enabled == true
 
-    - name: 1.4 Cau hinh NAT Static (Mo port may chu)
-      cisco.ios.ios_config:
-        lines: "ip nat inside source static {{ item.local_ip }} {{ item.global_ip }}"
-      loop: "{{ nat.static_rules }}"
-      when: nat is defined and nat.enabled == true and nat.static_rules is defined
+- name: 1.2 Cau hinh Dynamic NAT (Overload / PAT)
+  cisco.ios.ios_config:
+    lines:
+      - "ip access-list standard {{ nat.dynamic.acl_name }}"
+      - "permit {{ nat.dynamic.network }} {{ nat.dynamic.wildcard }}"
+      - "ip nat inside source list {{ nat.dynamic.acl_name }} interface {{ nat.dynamic.outside_interface }} overload"
+  when: nat is defined and nat.enabled == true and nat.mode == 'overload'
+
+- name: 1.3 Cau hinh Static NAT (1-1 hoac Port Forwarding)
+  cisco.ios.ios_config:
+    lines:
+      - "{% if item.port %}ip nat inside source static tcp {{ item.inside_ip }} {{ item.port }} {{ item.outside_ip }} {{ item.port }}{% else %}ip nat inside source static {{ item.inside_ip }} {{ item.outside_ip }}{% endif %}"
+  loop: "{{ nat.static }}"
+  when: nat is defined and nat.enabled == true and nat.mode == 'static'
 
     # ==========================================
     # PHAN 2: QoS NÂNG CAO (POLICING, SHAPING, QUEUING)
