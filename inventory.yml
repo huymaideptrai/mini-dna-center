@@ -1,0 +1,11 @@
+all:
+  hosts:
+    router1:
+      ansible_host: "{{target_ip}}"  # <--- Đổi thành IP con Router của bạn
+      ansible_user: huy     # Username đăng nhập router
+      ansible_password: cisco    # Password đăng nhập router
+      ansible_become_password: ccna
+      ansible_network_os: ios
+      ansible_connection: ansible.netcommon.network_cli
+      ansible_network_cli_ssh_type: paramiko
+      ansible_ssh_common_args: '-o KexAlgorithms=+diffie-hellman-group14-sha1 -o HostKeyAlgorithms=+ssh-rsa'

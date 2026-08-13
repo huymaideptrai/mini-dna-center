@@ -1,0 +1,98 @@
+---
+- name: Cau hinh Chuyen gia - Module 3 (VPN GRE, DMVPN Phase 3 & IPsec)
+  hosts: all
+  gather_facts: false
+  tasks:
+    # ==========================================
+    # PHAN 1: GRE TUNNEL CO BAN
+    # ==========================================
+    - name: 1. Cau hinh GRE Tunnel (Point-to-Point)
+      cisco.ios.ios_config:
+        parents: "interface {{ gre.interface_name }}"
+        lines:
+          - "ip address {{ gre.ip }} {{ gre.mask }}"
+          - "tunnel source {{ gre.source }}"
+          - "tunnel destination {{ gre.destination }}"
+      when: gre is defined and gre.enabled == true
+
+    # ==========================================
+    # PHAN 2: BẢO MẬT IPSEC (CHO DMVPN)
+    # ==========================================
+    - name: 2.1 Cau hinh ISAKMP Policy (Phase 1)
+      cisco.ios.ios_config:
+        parents: "crypto isakmp policy 10"
+        lines:
+          - "encr aes"
+          - "hash sha"
+          - "authentication pre-share"
+          - "group 14"
+      when: ipsec is defined and ipsec.enabled == true
+
+    - name: 2.2 Cau hinh ISAKMP Key
+      cisco.ios.ios_config:
+        lines:
+          - "crypto isakmp key {{ ipsec.pre_shared_key }} address 0.0.0.0"
+      when: ipsec is defined and ipsec.enabled == true
+
+    - name: 2.3 Cau hinh IPsec Transform-set (Phase 2)
+      cisco.ios.ios_config:
+        parents: "crypto ipsec transform-set {{ ipsec.transform_set_name }} esp-aes esp-sha-hmac"
+        lines:
+          - "mode transport"
+      when: ipsec is defined and ipsec.enabled == true
+
+    - name: 2.4 Cau hinh IPsec Profile
+      cisco.ios.ios_config:
+        parents: "crypto ipsec profile {{ ipsec.profile_name }}"
+        lines:
+          - "set transform-set {{ ipsec.transform_set_name }}"
+      when: ipsec is defined and ipsec.enabled == true
+
+    # ==========================================
+    # PHAN 3: DMVPN (PHASE 3)
+    # ==========================================
+    - name: 3.1 Cau hinh DMVPN (Phan chung cho ca Hub va Spoke)
+      cisco.ios.ios_config:
+        parents: "interface {{ dmvpn.interface_name }}"
+        lines:
+          - "ip address {{ dmvpn.ip }} {{ dmvpn.mask }}"
+          - "ip nhrp network-id {{ dmvpn.nhrp_id }}"
+          - "tunnel source {{ dmvpn.source }}"
+          - "tunnel mode gre multipoint"
+          - "tunnel key {{ dmvpn.tunnel_key }}"
+      when: dmvpn is defined and dmvpn.enabled == true
+
+    - name: 3.2 Cau hinh DMVPN (Phan danh rieng cho Spoke - Chi nhanh)
+      cisco.ios.ios_config:
+        parents: "interface {{ dmvpn.interface_name }}"
+        lines:
+          - "ip nhrp nhs {{ dmvpn.hub_tunnel_ip }}"
+          - "ip nhrp map {{ dmvpn.hub_tunnel_ip }} {{ dmvpn.hub_physical_ip }}"
+          - "ip nhrp map multicast {{ dmvpn.hub_physical_ip }}"
+          - "ip nhrp shortcut"   # Them Shortcut cho Spoke
+      when: dmvpn is defined and dmvpn.enabled == true and dmvpn.role == 'spoke'
+
+    - name: 3.3 Cau hinh DMVPN (Phan danh rieng cho Hub - Trung tam)
+      cisco.ios.ios_config:
+        parents: "interface {{ dmvpn.interface_name }}"
+        lines:
+          - "ip nhrp map multicast dynamic"
+          - "ip nhrp redirect"   # Them Redirect cho Hub
+      when: dmvpn is defined and dmvpn.enabled == true and dmvpn.role == 'hub'
+
+    - name: 3.4 Ap dung IPsec vao Tunnel DMVPN
+      cisco.ios.ios_config:
+        parents: "interface {{ dmvpn.interface_name }}"
+        lines:
+          - "tunnel protection ipsec profile {{ ipsec.profile_name }}"
+      when: dmvpn is defined and dmvpn.enabled == true and ipsec is defined and ipsec.enabled == true
+ 
+    - name: 4. Cau hinh FHRP (HSRP)
+      cisco.ios.ios_config:
+        parents: "interface {{ item.interface }}"
+        lines:
+          - "standby {{ item.group }} ip {{ item.vip }}"
+          - "standby {{ item.group }} priority {{ item.priority }}"
+          - "standby {{ item.group }} preempt"
+      loop: "{{ hsrp }}"
+      when: hsrp is defined and (hsrp | length > 0)

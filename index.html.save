@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Mini DNA Center - Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #e9ecef; margin: 0; padding: 20px; }
+        .container { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; text-align: center; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-top: 0;}
+        
+        /* CSS cho hệ thống Tab */
+        .tab { overflow: hidden; background-color: #f1f1f1; border-radius: 5px; display: flex; }
+        .tab button { background-color: inherit; border: none; outline: none; cursor: pointer; padding: 12px 15px; transition: 0.3s; flex: 1; font-size: 15px; font-weight: bold; color: #555; }
+        .tab button:hover { background-color: #ddd; }
+        .tab button.active { background-color: #3498db; color: white; }
+        
+        .tabcontent { display: none; padding: 20px 0; animation: fadeEffect 0.5s; }
+        @keyframes fadeEffect { from {opacity: 0;} to {opacity: 1;} }
+
+        label { display: block; margin-top: 12px; font-weight: 600; color: #34495e; font-size: 14px; }
+        input { width: 100%; padding: 10px; margin-top: 4px; box-sizing: border-box; border: 1px solid #ced4da; border-radius: 4px; }
+        .btn-submit { margin-top: 20px; width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-submit:hover { background: #218838; }
+        
+        #terminal-box { margin-top: 20px; padding: 15px; background: #1e1e1e; color: #4af626; border-radius: 5px; display: none; white-space: pre-wrap; font-family: monospace; max-height: 250px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🌐 Bảng Điều Khiển Hạ Tầng Mạng</h2>
+        
+        <!-- Các nút bấm chuyển Tab -->
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'Mod0')">1. Cơ bản (Day-0)</button>
+            <button class="tablinks" onclick="openTab(event, 'Mod2')">2. Định tuyến (OSPF)</button>
+            <button class="tablinks" onclick="alert('Đang phát triển!')">3. VPN & WAN</button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- NỘI DUNG TAB 1: MODULE 0 (CƠ BẢN) -->
+        <!-- ========================================== -->
+        <div id="Mod0" class="tabcontent" style="display: block;">
+            <label>Tên thiết bị (Hostname):</label>
+            <input type="text" id="m0_hostname" value="Core-Router">
+            
+            <label>IP Cổng GigabitEthernet0/0:</label>
+            <input type="text" id="m0_ip" value="192.168.1.1">
+            
+            <label>Tài khoản Admin:</label>
+            <input type="text" id="m0_admin" value="admin">
+
+            <button class="btn-submit" id="btn-mod0" onclick="sendModule0()">🔥 CHẠY CẤU HÌNH CƠ BẢN</button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- NỘI DUNG TAB 2: MODULE 2 (OSPF) -->
+        <!-- ========================================== -->
+        <div id="Mod2" class="tabcontent">
+            <label>OSPF Process ID:</label>
+            <input type="number" id="m2_pid" value="1">
+            
+            <label>Router ID:</label>
+            <input type="text" id="m2_rid" value="1.1.1.1">
+            
+            <label>Network IP (Mạng cần quảng bá):</label>
+            <input type="text" id="m2_net" value="10.0.0.0">
+
+            <label>Wildcard Mask:</label>
+            <input type="text" id="m2_wild" value="0.0.0.255">
+
+            <button class="btn-submit" id="btn-mod2" onclick="sendModule2()">🚀 KÍCH HOẠT OSPF</button>
+        </div>
+
+        <!-- Màn hình in kết quả chung -->
+        <div id="terminal-box"></div>
+    </div>
+
+    <script>
+        // Hàm xử lý chuyển Tab
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        // Hàm gọi API chung (Để không phải viết đi viết lại đoạn code hiển thị Terminal)
+        async function callAPI(endpoint, data, btnId) {
+            const btn = document.getElementById(btnId);
+            const termBox = document.getElementById('terminal-box');
+            const originalText = btn.innerText;
+            
+            btn.innerText = "⏳ Đang xử lý...";
+            btn.style.background = "#f39c12";
+            termBox.style.display = "block";
+            termBox.style.color = "#4af626";
+            termBox.innerText = "Đang gửi lệnh xuống thiết bị mạng...\nĐợi một lát nhé...";
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                
+                if(result.status === 'success') {
+                    termBox.innerText = "✅ THÀNH CÔNG!\n\n" + result.ansible_log;
+                } else {
+                    termBox.style.color = "#ff4d4d";
+                    termBox.innerText = "❌ CÓ LỖI XẢY RA:\n\n" + result.ansible_log;
+                }
+            } catch (error) {
+                termBox.style.color = "#ff4d4d";
+                termBox.innerText = "❌ Lỗi kết nối tới Server API!";
+            }
+            
+            btn.innerText = originalText;
+            btn.style.background = "#28a745";
+        }
+
+        // Gom dữ liệu Module 0
+        function sendModule0() {
+            const data = {
+                basic: {
+                    hostname: document.getElementById('m0_hostname').value,
+                    admin_user: document.getElementById('m0_admin').value,
+                    admin_pass: "cisco123",
+                    domain_name: "company.local",
+                    transport: "ssh telnet",
+                    interfaces: [ { name: "GigabitEthernet0/0", ip: document.getElementById('m0_ip').value, mask: "255.255.255.0" } ]
+                }
+            };
+            callAPI('/api/config/basic', data, 'btn-mod0');
+        }
+
+        // Gom dữ liệu Module 2
+        function sendModule2() {
+            const data = {
+                ospf: {
+                    enabled: true,
+                    process_id: parseInt(document.getElementById('m2_pid').value),
+                    router_id: document.getElementById('m2_rid').value,
+                    network: document.getElementById('m2_net').value,
+                    wildcard: document.getElementById('m2_wild').value,
+                    area: 0
+                }
+            };
+            // Gọi đường dẫn API của Module 2
+            callAPI('/api/config/module2-routing', data, 'btn-mod2');
+        }
+    </script>
+</body>
+</html>

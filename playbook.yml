@@ -1,0 +1,43 @@
+---
+- name: Cau hinh Co ban - Day 0 (Hostname, IP, SSH/Telnet)
+  hosts: all
+  gather_facts: false
+  become: yes
+  become_method: enable
+  tasks:
+    - name: 1. Cau hinh Hostname
+      cisco.ios.ios_config:
+        lines: "hostname {{ basic.hostname }}"
+      when: basic is defined and basic.hostname is not none
+
+    - name: 2. Cau hinh IP vao cac cong (Interfaces)
+      cisco.ios.ios_config:
+        parents: "interface {{ item.name }}"
+        lines:
+          - "ip address {{ item.ip }} {{ item.mask }}"
+          - "no shutdown"
+      loop: "{{ basic.interfaces }}"
+      when: basic is defined and basic.interfaces is defined
+
+    - name: 3. Cau hinh IP Domain Lookup
+      cisco.ios.ios_config:
+        lines:
+          - "{% if basic.domain_lookup %}ip domain-lookup{% else %}no ip domain-lookup{% endif %}"
+      when: basic is defined
+
+    - name: 4. Cau hinh Domain Name
+      cisco.ios.ios_config:
+        lines:
+          - "ip domain-name {{ basic.domain_name }}"
+      # Dòng này giúp Ansible tự động bỏ qua nếu ô Domain Name bị bỏ trống
+      when: basic is defined and basic.domain_name is defined and basic.domain_name != ""
+
+    - name: 5. Cau hinh Sub-Interfaces (VLAN)
+      cisco.ios.ios_config:
+        parents: "interface {{ item.name }}"
+        lines:
+          - "encapsulation dot1Q {{ item.vlan_id }}"
+          - "ip address {{ item.ip }} {{ item.mask }}"
+      loop: "{{ sub_interfaces }}"
+      when: sub_interfaces is defined and (sub_interfaces | length > 0)
+

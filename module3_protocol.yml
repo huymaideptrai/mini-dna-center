@@ -1,0 +1,100 @@
+---
+- name: Cau hinh Chuyen gia - Module 4 (NAT Nang cao, QoS ISP, IP SLA)
+  hosts: all
+  gather_facts: false
+  tasks:
+    # ==========================================
+    # PHAN 1: NAT NÂNG CAO (OVERLOAD & STATIC)
+    # ==========================================
+    - name: 1.1 Cau hinh NAT Inside/Outside tren cong
+      cisco.ios.ios_config:
+        parents: "interface {{ item.name }}"
+        lines: "ip nat {{ item.type }}"
+      loop: "{{ nat.interfaces }}"
+      when: nat is defined and nat.enabled == true
+
+    - name: 1.2 Cau hinh Named ACL (Cho phep Permit/Deny)
+      cisco.ios.ios_config:
+        parents: "ip access-list extended {{ nat.acl_name }}"
+        lines: "{{ item.action }} ip {{ item.source }} {{ item.source_wildcard }} {{ item.destination }} {{ item.dest_wildcard }}"
+      loop: "{{ nat.acl_rules }}"
+      when: nat is defined and nat.enabled == true and nat.acl_rules is defined
+
+    - name: 1.3 Cau hinh NAT Overload (PAT)
+      cisco.ios.ios_config:
+        lines: "ip nat inside source list {{ nat.acl_name }} interface {{ nat.outside_interface }} overload"
+      when: nat is defined and nat.enabled == true and nat.acl_name is defined
+
+    - name: 1.4 Cau hinh NAT Static (Mo port may chu)
+      cisco.ios.ios_config:
+        lines: "ip nat inside source static {{ item.local_ip }} {{ item.global_ip }}"
+      loop: "{{ nat.static_rules }}"
+      when: nat is defined and nat.enabled == true and nat.static_rules is defined
+
+    # ==========================================
+    # PHAN 2: QoS NÂNG CAO (POLICING, SHAPING, QUEUING)
+    # ==========================================
+    - name: 2.1 Cau hinh QoS Class-map (Match ACL)
+      cisco.ios.ios_config:
+        parents: "class-map match-any {{ qos.class_name }}"
+        lines: "match access-group name {{ qos.match_acl }}"
+      when: qos is defined and qos.enabled == true and qos.match_acl is not none
+
+    - name: 2.2 QoS Policy-map - Cap phat Bang thong (Bandwidth)
+      cisco.ios.ios_config:
+        parents:
+          - "policy-map {{ qos.policy_name }}"
+          - "class {{ qos.class_name }}"
+        lines: "bandwidth percent {{ qos.bandwidth_percent }}"
+      when: qos is defined and qos.enabled == true and qos.bandwidth_percent is not none
+
+    - name: 2.3 QoS Policy-map - Nan dong (Shaping)
+      cisco.ios.ios_config:
+        parents:
+          - "policy-map {{ qos.policy_name }}"
+          - "class {{ qos.class_name }}"
+        lines: "shape average {{ qos.shape_rate }}"
+      when: qos is defined and qos.enabled == true and qos.shape_rate is not none
+
+    - name: 2.4 QoS Policy-map - Cat bo (Policing)
+      cisco.ios.ios_config:
+        parents:
+          - "policy-map {{ qos.policy_name }}"
+          - "class {{ qos.class_name }}"
+        lines: "police {{ qos.police_rate }} conform-action transmit exceed-action drop"
+      when: qos is defined and qos.enabled == true and qos.police_rate is not none
+
+    - name: 2.5 QoS Policy-map - Hang doi (Queuing)
+      cisco.ios.ios_config:
+        parents:
+          - "policy-map {{ qos.policy_name }}"
+          - "class {{ qos.class_name }}"
+        lines: "fair-queue"
+      when: qos is defined and qos.enabled == true and qos.queue_type == 'fair-queue'
+
+    - name: 2.6 Ap dung QoS vao Interface
+      cisco.ios.ios_config:
+        parents: "interface {{ qos.interface_name }}"
+        lines: "service-policy {{ qos.direction }} {{ qos.policy_name }}"
+      when: qos is defined and qos.enabled == true
+
+    # ==========================================
+    # PHAN 3: IP SLA & TRACKING (GIAM SAT MANG)
+    # ==========================================
+    - name: 3.1 Cau hinh IP SLA
+      cisco.ios.ios_config:
+        parents: "ip sla {{ ipsla.id }}"
+        lines:
+          - "icmp-echo {{ ipsla.destination }} source-ip {{ ipsla.source }}"
+          - "frequency {{ ipsla.frequency }}"
+      when: ipsla is defined and ipsla.enabled == true
+
+    - name: 3.2 Kich hoat IP SLA Schedule
+      cisco.ios.ios_config:
+        lines: "ip sla schedule {{ ipsla.id }} life forever start-time now"
+      when: ipsla is defined and ipsla.enabled == true
+
+    - name: 3.3 Cau hinh Track Object
+      cisco.ios.ios_config:
+        lines: "track {{ ipsla.track_id }} ip sla {{ ipsla.id }} reachability"
+      when: ipsla is defined and ipsla.enabled == true

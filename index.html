@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Mini DNA Center - Dashboard</title>
+    <!-- GỌI FILE CSS VÀO ĐÂY -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Bạn nhớ chèn thêm link Bootstrap vào đây nếu chưa có để các class col-md, card hoạt động nhé -->
+</head>
+<body>
+    <div class="container"> <!-- ĐÂY LÀ HỘP TRẮNG LỚN BỌC TOÀN BỘ TRANG -->
+        <h2>🌐 Hệ Thống Tự Động Hóa Mạng - DNA Center</h2>
+
+        <!-- ========================================== -->
+        <!-- KHU VỰC CHỌN ROUTER MỤC TIÊU -->
+        <!-- ========================================== -->
+        <div style="background: #eafaf1; padding: 15px; margin-bottom: 20px; border-radius: 8px; border-left: 5px solid #27ae60;">
+            <h4 style="margin-top: 0; color: #1e8449;">🎯 Chọn Router </h4>
+            <div class="form-group" style="max-width: 400px;">
+                <label>Địa chỉ IP Router (Mgmt IP):</label>
+                <input type="text" id="target_router_ip" placeholder="VD: 192.168.1.100" style="width: 100%; border: 1px solid #2ecc71; padding: 8px; border-radius: 4px;">
+            </div>
+        </div>
+
+        <!-- Các nút bấm chuyển Tab -->
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'Mod0')">0. BASIC </button>
+            <button class="tablinks" onclick="openTab(event, 'Mod1')">1. ROUTING</button>
+            <button class="tablinks" onclick="openTab(event, 'Mod2')">2. VPN</button>
+            <button class="tablinks" onclick="openTab(event, 'Mod3')">3. PROTOCOL</button>
+            <button class="tablinks" onclick="openTab(event, 'Mod4')">4. SERVICE</button>
+        </div>
+
+<!-- ========================================== -->
+        <!-- TAB 0: CƠ BẢN (DAY-0)                      -->
+        <!-- ========================================== -->
+        <div id="Mod0" class="tabcontent" style="display: block;">
+            
+            <div class="card mb-4 border-secondary shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold" style="color: #2980b9;">0. CẤU HÌNH CƠ BẢN (DAY-0)</h5>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- Khối 1: Thông tin thiết bị (Nền Xanh lam nhạt) -->
+                    <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d4e6f1;">
+                        <h6 class="fw-bold mb-3 text-primary">1. Thông tin thiết bị (Device Info)</h6>
+                        <div class="row mx-0">
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                <label class="form-label fw-bold text-dark">Hostname</label>
+                                <input type="text" class="form-control" id="m0_hostname" placeholder="VD: Core-Router">
+                            </div>
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                <label class="form-label fw-bold text-dark">Domain Name</label>
+                                <input type="text" class="form-control" id="m0_domain" placeholder="VD: company.local">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-dark">Admin User</label>
+                                <input type="text" class="form-control" id="m0_admin" placeholder="VD: admin">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Khối 2: Cổng mạng (Nền Xanh ngọc nhạt) -->
+                    <div style="background: #e8f8f5; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #d1f2eb;">
+                        <h6 class="fw-bold mb-3 text-success">2. Cấu hình Cổng Mạng (Interfaces)</h6>
+                        <div id="interfaces-container" class="mb-2"></div>
+                        <button type="button" class="btn btn-secondary btn-sm mb-2" onclick="addInterfaceRow()">+ Thêm cổng mạng</button>
+                    </div>
+                    
+                    <!-- Khối 3: Sub-interface -->
+                    <div style="background: #e0f2f1; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #b2dfdb;">
+                        <h6 class="fw-bold mb-3 text-teal" style="color: #00796b;">3. Cấu hình Sub-interface (VLAN Routing)</h6>
+                        <div id="subint-container" class="mb-2"></div>
+                        <button type="button" class="btn btn-secondary btn-sm mb-2" onclick="addSubInterfaceRow()">+ Thêm Sub-interface</button>
+                    </div>
+
+                </div>
+            </div>
+<button class="btn btn-success btn-lg w-100 fw-bold shadow-sm" id="btn-mod0" onclick="sendModule0()">🔥 CHẠY CẤU HÌNH CƠ BẢN</button>
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 1: ĐỊNH TUYẾN                      -->
+        <!-- ========================================== -->
+        <div id="Mod1" class="tabcontent" style="display: none;">
+
+            <!-- KHU VỰC A: CẤU HÌNH OSPF -->
+            <div class="card mb-4 border-secondary shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold" style="color: #d35400;">A. CẤU HÌNH OSPF</h5>
+                </div>
+                <div class="card-body">
+
+                    <!-- 1. TIẾN TRÌNH (Nền Cam nhạt) -->
+                    <div style="background: #fff3e0; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ffe0b2;">
+                        <h6 class="fw-bold mb-3" style="color: #e65100;">1. Thông số Tiến trình & Tùy chọn (Process, Passive, Summary)</h6>
+                        
+                        <!-- Hàng 1: Cơ bản -->
+                        <div class="row mb-3">
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                <label class="form-label fw-bold">OSPF Process ID</label>
+                                <input type="number" class="form-control" id="m2_ospf_pid" value="1">
+                            </div>
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                <label class="form-label fw-bold">Router ID</label>
+                                <input type="text" class="form-control" id="m2_ospf_rid" value="1.1.1.1">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Redistribute (Phân phối)</label>
+                                <select class="form-select" id="m2_ospf_redist">
+                                    <option value="">Không cấu hình</option>
+                                    <option value="static">Static (Tĩnh)</option>
+                                    <option value="connected">Connected (Trực tiếp)</option>
+                                    <option value="bgp">BGP</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <hr class="text-black-50">
+
+                        <!-- Hàng 2: Cổng Active -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <label class="form-label fw-bold text-success">Active Interfaces (Cổng Ngoại Lệ)</label>
+                                <p class="small text-muted mb-2"><i>Mặc định OSPF đã bật <b>Passive-Interface Default</b>. Hãy khai báo các cổng bạn muốn <b>bật lại</b> OSPF (Cho phép gửi Hello) vào đây.</i></p>
+                                <div id="ospf-active-container" class="mb-2"></div>
+                                <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="addOspfActiveRow()">+ Thêm Cổng Active</button>
+                            </div>
+                        </div>
+
+                        <!-- Hàng 3: Summary -->
+                        <div class="row">
+                            <div class="col-12">
+                                <label class="form-label fw-bold text-primary">Gom Route (Area Range Summary)</label>
+                                <p class="small text-muted mb-2"><i>Sử dụng trên Router ABR để tóm tắt các dải mạng trước khi quảng bá sang Area khác.</i></p>
+                                <div id="ospf-summary-container" class="mb-2"></div>
+                                <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="addOspfSummaryRow()">+ Thêm Summary</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. NETWORKS & AREA TYPES (Nền Vàng nhạt) -->
+                    <div style="background: #fff9c4; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #fff59d;">
+                        <h6 class="fw-bold mb-3" style="color: #f39c12;">2. Khai báo Mạng & Khu vực (Networks & Areas)</h6>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark mb-2">a. Khai báo dải mạng (Network)</label>
+                            <div id="ospf-network-container" class="mb-2"></div>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="addOspfNetworkRow()">+ Thêm Network</button>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label fw-bold text-dark mb-2">b. Tùy chỉnh Area Type (Tùy chọn)</label>
+                            <div id="ospf-area-type-container" class="mb-2"></div>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="addOspfAreaTypeRow()">+ Thêm Area Type (Stub / NSSA)</button>
+                        </div>
+                    </div>
+
+                    <!-- 3. INTERFACES & AUTHENTICATION (Nền Đỏ/Nâu nhạt) -->
+                    <div style="background: #fbe9e7; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #ffccbc;">
+                        <h6 class="fw-bold mb-3" style="color: #c0392b;">3. Tùy chỉnh Cổng & Xác thực (Interfaces & Authentication)</h6>
+                        <div id="ospf-interface-container" class="mb-2"></div>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="addOspfInterfaceRow()">+ Cấu hình Cổng & Authen</button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- KHU VỰC B: BGP NÂNG CAO -->
+            <div class="card mb-4 border-secondary shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold" style="color: #2980b9;">B. CẤU HÌNH BGP</h5>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- BGP (Nền Xanh dương nhạt) -->
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #bbdefb;">
+                        <div class="row mb-4">
+                            <div class="col-md-3 mb-3 mb-md-0"><label class="form-label fw-semibold">Local AS</label><input type="number" class="form-control" id="m2_bgp_as" value="65000"></div>
+                            <div class="col-md-3 mb-3 mb-md-0"><label class="form-label fw-semibold">BGP Router ID</label><input type="text" class="form-control" id="m2_bgp_rid" value="1.1.1.1"></div>
+                            <div class="col-md-3 mb-3 mb-md-0">
+                                <label class="form-label fw-semibold">Redistribute</label>
+                                <select class="form-select" id="m2_bgp_redist">
+                                    <option value="">Không cấu hình</option>
+                                    <option value="static">Static</option>
+                                    <option value="connected">Connected</option>
+                                    <option value="ospf">OSPF</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Aggregate Address (Summary)</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="m2_bgp_sum_ip" placeholder="IP">
+                                    <input type="text" class="form-control" id="m2_bgp_sum_mask" placeholder="Mask">
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold mb-3" style="color: #1565c0;">Danh sách Hàng xóm BGP (Neighbors & Attributes):</h6>
+                        <div id="bgp-neighbor-container" class="mb-2"></div>
+                        <button type="button" class="btn btn-secondary btn-sm mb-2" onclick="addBgpNeighborRow()">+ Thêm Neighbor BGP</button>
+                    </div>
+
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-lg w-100 fw-bold shadow-sm" id="btn-mod2" onclick="sendModule2()">🚀 ÁP DỤNG ĐỊNH TUYẾN NÂNG CAO</button>
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 3: VPN, DMVPN & WAN                    -->
+        <!-- ========================================== -->
+        <div id="Mod2" class="tabcontent" style="display: none;">
+
+            <!-- A. DỰ PHÒNG GATEWAY (HSRP) -->
+            <div class="card mb-4 border-secondary shadow-sm mt-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold" style="color: #e67e22;">A. DỰ PHÒNG GATEWAY (HSRP)</h5>
+                </div>
+                <div class="card-body">
+                    <div style="background: #fdf2e9; padding: 15px; border-radius: 8px; border: 1px solid #f8c471;">
+                        <p class="small text-muted mb-2"><i>Tạo IP Virtual (Gateway ảo) dự phòng cho mạng LAN.</i></p>
+                        <div id="hsrp-container" class="mb-2"></div>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="addHsrpRow()">+ Thêm HSRP</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KHU VỰC A: IPSEC CRYPTO -->
+            <div class="card mb-4 border-secondary shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold" style="color: #c0392b;">A. CẤU HÌNH BẢO MẬT IPSEC (GLOBAL)</h5>
+                </div>
+                <div class="card-body">
+
+                    <h6 class="fw-bold mb-3" style="color: #922b21;">1. ISAKMP (Phase 1)</h6>
+                    <div class="row mb-4 bg-light p-3 rounded">
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label class="form-label fw-semibold">Policy ID</label>
+                            <input type="number" class="form-control" id="m3_ike_id" value="10">
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label class="form-label fw-semibold">Pre-shared Key (Mật khẩu)</label>
+                            <input type="text" class="form-control" id="m3_ike_key" placeholder="VD: cisco123">
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label class="form-label fw-semibold">Encryption</label>
+                            <select class="form-select" id="m3_ike_encr">
+                                <option value="aes 256">AES-256</option>
+                                <option value="aes 128">AES-128</option>
+                                <option value="3des">3DES</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">DH Group</label>
+                            <select class="form-select" id="m3_ike_dh">
+                                <option value="14">Group 14</option>
+                                <option value="2">Group 2</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold mb-3" style="color: #922b21;">2. IPsec Profile (Phase 2)</h6>
+                    <div class="row mb-2 bg-light p-3 rounded">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label class="form-label fw-semibold">Transform Set Name</label>
+                            <input type="text" class="form-control" id="m3_ipsec_ts" value="TS_VPN">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">IPsec Profile Name</label>
+                            <input type="text" class="form-control" id="m3_ipsec_prof" value="PROF_VPN">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- KHU VỰC B: ĐƯỜNG HẦM (TUNNELS) -->
+            <div class="card mb-4 border-secondary shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold" style="color: #27ae60;">B. CẤU HÌNH ĐƯỜNG HẦM (GRE / DMVPN)</h5>
+                </div>
+                <div class="card-body">
+                    <div id="vpn-tunnel-container" class="mb-2"></div>
+                    <button type="button" class="btn btn-outline-success btn-sm mb-2" onclick="addVpnTunnelRow()">+ Thêm Đường Hầm (Tunnel)</button>
+                </div>
+            </div>
+
+            <button class="btn btn-danger btn-lg w-100 fw-bold shadow-sm" id="btn-mod3" onclick="sendModule3()">🔐 THIẾT LẬP VPN & DMVPN</button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: CẤU HÌNH NAT & QOS                  -->
+        <!-- ========================================== -->
+        <div id="Mod3" class="tabcontent" style="display: none;">
+
+            <!-- A. CẤU HÌNH INTERFACE NAT -->
+            <div class="card mb-4 border-secondary shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold">1. Khai Báo Cổng NAT (Interfaces)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 border-end">
+                            <h6 class="fw-bold text-success mb-3">Cổng Inside (Mạng LAN)</h6>
+                            <div id="inside-int-container">
+                                <div class="row mb-2 inside-row align-items-center">
+                                    <div class="col-10">
+                                        <input type="text" class="form-control" placeholder="VD: GigabitEthernet0/0">
+                                    </div>
+                                    <div class="col-2">
+                                        <button type="button" class="btn btn-danger w-100 fw-bold btn-remove-int">X</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-success btn-sm mt-2" id="btn_add_inside">+ Thêm cổng Inside</button>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-danger mb-3">Cổng Outside (Mạng WAN)</h6>
+                            <div id="outside-int-container">
+                                <div class="row mb-2 outside-row align-items-center">
+                                    <div class="col-10">
+                                        <input type="text" class="form-control" placeholder="VD: GigabitEthernet0/1">
+                                    </div>
+                                    <div class="col-2">
+                                        <button type="button" class="btn btn-danger w-100 fw-bold btn-remove-int">X</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-danger btn-sm mt-2" id="btn_add_outside">+ Thêm cổng Outside</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- B. CẤU HÌNH ACL -->
+            <div class="card mb-4 border-secondary shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold">2. Khai Báo Access List (ACL)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Loại ACL</label>
+                            <select class="form-select border-primary" id="acl_type_select">
+                                <option value="standard">ACL Số (1-99) / Standard</option>
+                                <option value="extended">ACL Số (100-199) / Extended</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Tên / Số ACL</label>
+                            <input type="text" class="form-control" placeholder="VD: 10 hoặc LAN_ACL">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Hành động</label>
+                            <select class="form-select">
+                                <option value="permit">Permit (Cho phép)</option>
+                                <option value="deny">Deny (Chặn)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Khối Nguồn -->
+                    <div class="row mb-3 bg-light p-3 rounded">
+                        <div class="col-md-2 d-none" id="acl_protocol_col">
+                            <label class="form-label fw-semibold text-danger">Giao thức</label>
+                            <select class="form-select">
+                                <option value="ip">IP</option>
+                                <option value="tcp">TCP</option>
+                                <option value="udp">UDP</option>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold">IP Nguồn (Source IP)</label>
+                            <input type="text" class="form-control" placeholder="VD: 192.168.1.0">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold">Mask Nguồn</label>
+                            <input type="text" class="form-control" placeholder="VD: 0.0.0.255">
+                        </div>
+                    </div>
+
+                    <!-- Khối Đích -->
+                    <div class="row mb-3 bg-light p-3 rounded border-top d-none" id="acl_extended_fields">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-danger">IP Đích (Destination)</label>
+                            <input type="text" class="form-control" placeholder="VD: any hoặc 8.8.8.8">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-danger">Mask Đích</label>
+                            <input type="text" class="form-control" placeholder="Để trống nếu là 'any'">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-danger">Port</label>
+                            <input type="text" class="form-control" placeholder="VD: eq 80">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- C. CẤU HÌNH LUẬT NAT -->
+            <div class="card mb-4 border-secondary shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold">3. Khai Báo Luật NAT</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Chọn kiểu NAT</label>
+                            <select class="form-select border-primary" id="nat_type_select">
+                                <option value="overload">NAT Overload (PAT ra Internet)</option>
+                                <option value="static">NAT Tĩnh (Port Forwarding)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="nat_overload_form" class="row bg-light p-3 rounded">
+                        <h6 class="fw-bold mb-3 text-primary">Cấu hình NAT Overload</h6>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tên/Số ACL áp dụng</label>
+                            <input type="text" class="form-control" placeholder="Nhập tên/số ACL đã tạo ở trên (VD: 100)">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Cổng ra (Outside Interface)</label>
+                            <input type="text" class="form-control" placeholder="VD: GigabitEthernet0/1">
+                        </div>
+                    </div>
+
+                    <div id="nat_static_form" class="row bg-light p-3 rounded d-none">
+                        <h6 class="fw-bold mb-3 text-primary">Cấu hình NAT Tĩnh (1-1)</h6>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">IP Inside (Local Server)</label>
+                            <input type="text" class="form-control" placeholder="VD: 192.168.1.10">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">IP Outside (Public IP)</label>
+                            <input type="text" class="form-control" placeholder="VD: 8.8.8.8">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Port (Bỏ trống = NAT full)</label>
+                            <input type="text" class="form-control" placeholder="VD: 80">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KHU VỰC D: QoS -->
+            <div class="card mb-4 border-secondary shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold" style="color: #2c3e50;">4. CẤU HÌNH QOS (Phân loại & Ưu tiên)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4 bg-light p-3 rounded">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label class="form-label fw-semibold">Tên Policy Map</label>
+                            <input type="text" class="form-control" id="m4_qos_policy" value="QOS_POLICY_WAN">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Áp dụng vào Cổng (Out)</label>
+                            <input type="text" class="form-control" id="m4_qos_int" placeholder="VD: GigabitEthernet0/1">
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold mb-3" style="color: #1a252f;">Danh sách Class Map (Phân loại lưu lượng):</h6>
+                    <div id="qos-class-container" class="mb-2"></div>
+                    <button type="button" class="btn btn-outline-dark btn-sm mb-2" onclick="addQosClassRow()">+ Thêm Class (Voice, Data...)</button>
+                </div>
+            </div>
+
+            <button class="btn btn-dark btn-lg w-100 fw-bold shadow-sm" id="btn-mod4" onclick="sendModule4()">⚙️ ÁP DỤNG NAT & QOS</button>
+        </div>
+
+        <!-- Màn hình in kết quả chung -->
+        <div id="terminal-box" class="mt-4 rounded shadow-sm border p-3 bg-dark text-light" style="min-height: 200px; display: none;"></div>
+
+<!-- ========================================== -->
+        <!-- TAB 5: SERVICES & MANAGEMENT               -->
+        <!-- ========================================== -->
+        <div id="Mod4" class="tabcontent" style="display: none;">
+
+            <!-- A. CẤU HÌNH AAA (Bảo mật truy cập) -->
+            <div class="card mb-4 border-secondary shadow-sm mt-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold" style="color: #6a1b9a;">A. BẢO MẬT TRUY CẬP (AAA)</h5>
+                </div>
+                <div class="card-body">
+                    <div style="background: #f3e5f5; padding: 15px; border-radius: 8px; border: 1px solid #e1bee7;">
+                        <p class="small text-muted mb-2"><i>Khai báo máy chủ xác thực RADIUS hoặc TACACS+ để quản lý đăng nhập thiết bị.</i></p>
+                        <div id="aaa-container" class="mb-2"></div>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="addAaaRow()">+ Thêm Server AAA</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- B. SYSTEM MANAGEMENT (Syslog, FTP, TFTP) -->
+            <div class="card mb-4 border-secondary shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold" style="color: #283593;">B. QUẢN TRỊ HỆ THỐNG (Syslog & File Transfer)</h5>
+                </div>
+                <div class="card-body">
+
+                    <!-- Khối 1: Syslog -->
+                    <div class="mb-4" style="background: #e8eaf6; padding: 15px; border-radius: 8px; border: 1px solid #c5cae9;">
+                        <h6 class="fw-bold mb-2 text-dark">1. Cấu hình Ghi nhật ký (Syslog Servers)</h6>
+                        <div id="syslog-container" class="mb-2"></div>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="addSyslogRow()">+ Thêm Syslog Server</button>
+                    </div>
+
+                    <!-- Khối 2: FTP / TFTP -->
+                    <div style="background: #e0f7fa; padding: 15px; border-radius: 8px; border: 1px solid #b2ebf2;">
+                        <h6 class="fw-bold mb-2 text-dark">2. Cấu hình Truyền File (FTP / TFTP)</h6>
+                        <div id="ftp-container" class="mb-2"></div>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="addFtpRow()">+ Thêm FTP/TFTP Server</button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- C. DỊCH VỤ MẠNG (DHCP & IP SLA) -->
+            <div class="card mb-4 border-secondary shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold" style="color: #00695c;">C. DỊCH VỤ MẠNG (Network Services)</h5>
+                </div>
+                <div class="card-body">
+
+                    <!-- Khối 1: DHCP Server -->
+                    <div class="mb-4" style="background: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px solid #c8e6c9;">
+                        <h6 class="fw-bold mb-2 text-success">1. Cấu hình Cấp phát IP Động (DHCP Server)</h6>
+                        <div id="dhcp-container" class="mb-2"></div>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="addDhcpRow()">+ Thêm DHCP Pool</button>
+                    </div>
+
+                    <!-- Khối 2: IP SLA -->
+                    <div style="background: #fff8e1; padding: 15px; border-radius: 8px; border: 1px solid #ffecb3;">
+                        <h6 class="fw-bold mb-2 text-warning">2. Giám sát chất lượng mạng (IP SLA)</h6>
+                        <div id="ipsla-container" class="mb-2"></div>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="addIpSlaRow()">+ Thêm IP SLA Monitor</button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- D. ĐỒNG BỘ THỜI GIAN (NTP) (Đã được chuyển vào bên trong Mod5) -->
+            <div class="card mb-4 border-secondary shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold" style="color: #1976d2;">D. ĐỒNG BỘ THỜI GIAN (NTP)</h5>
+                </div>
+                <div class="card-body">
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #bbdefb;">
+                        <div id="ntp-container" class="mb-2"></div>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="addNtpRow()">+ Thêm NTP Server</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nút Submit được đặt ở dòng cuối cùng của Module 5 -->
+            <button class="btn btn-info btn-lg w-100 fw-bold shadow-sm text-white" id="btn-mod5" onclick="sendModule5()">🛠 ÁP DỤNG SERVICES & MGMT</button>
+            
+        </div> <!-- 🛑 ĐÂY MỚI LÀ NƠI CHUẨN XÁC ĐỂ ĐÓNG TAB MODULE 5 -->
+
+    </div> <!-- ĐÂY LÀ NƠI CHUẨN XÁC ĐỂ ĐÓNG HỘP TRẮNG LỚN TỔNG -->
+
+    <!-- GỌI FILE JAVASCRIPT VÀO ĐÂY (Nằm ở cuối trang) -->
+    <script src="/static/script.js"></script>
+</body>
+</html>

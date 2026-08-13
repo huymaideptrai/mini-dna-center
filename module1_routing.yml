@@ -1,0 +1,106 @@
+---
+- name: MODULE 2 - CAU HINH ROUTING TONG HOP
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    # ==========================================
+    # PHẦN 1: CẤU HÌNH OSPF & OSPF TỚI CÁC CỔNG
+    # ==========================================
+    - name: 1.1 Cau hinh OSPF (Tien trinh, Router-ID, Passive)
+      cisco.ios.ios_config:
+        parents: "router ospf {{ ospf.process_id }}"
+        lines:
+          - "router-id {{ ospf.router_id }}"
+          - "passive-interface {{ item }}"
+      loop: "{{ ospf.passive_interfaces | default([]) }}"
+      when: ospf is defined
+
+    - name: 1.2 Cau hinh OSPF Networks
+      cisco.ios.ios_config:
+        parents: "router ospf {{ ospf.process_id }}"
+        lines: "network {{ item }}"
+      loop: "{{ ospf.networks | default([]) }}"
+      when: ospf is defined
+
+    - name: 1.3 Cau hinh OSPF Areas Type (Stub, NSSA)
+      cisco.ios.ios_config:
+        parents: "router ospf {{ ospf.process_id }}"
+        lines: "area {{ item.area_id }} {{ item.area_type }}"
+      loop: "{{ ospf.areas | default([]) }}"
+      when: ospf is defined
+
+    - name: 1.4 Cau hinh OSPF Redistribute & Summary
+      cisco.ios.ios_config:
+        parents: "router ospf {{ ospf.process_id }}"
+        lines:
+          - "redistribute {{ item.protocol }} metric {{ item.metric | default(20) }} subnets"
+      loop: "{{ ospf.redistributes | default([]) }}"
+      when: ospf is defined
+
+    - name: 1.5 Chui vao cong de cau hinh OSPF Nâng cao (Type, Cost, MTU, Auth)
+      cisco.ios.ios_config:
+        parents: "interface {{ item.name }}"
+        lines:
+          - "ip ospf network {{ item.network_type | default(omit) }}"
+          - "ip ospf cost {{ item.cost | default(omit) }}"
+          - "ip mtu {{ item.mtu | default(omit) }}"
+          - "ip ospf authentication-key {{ item.auth_key | default(omit) }}"
+      loop: "{{ ospf.interfaces | default([]) }}"
+      when: ospf is defined
+
+    # ==========================================
+    # PHẦN 2: CẤU HÌNH OSPFv3 (IPv6)
+    # ==========================================
+    - name: 2.1 Cau hinh OSPFv3 (Global)
+      cisco.ios.ios_config:
+        parents: "router ospfv3 {{ ospfv3.process_id }}"
+        lines: "router-id {{ ospfv3.router_id }}"
+      when: ospfv3 is defined
+
+    - name: 2.2 Bat OSPFv3 tren cac cong
+      cisco.ios.ios_config:
+        parents: "interface {{ item }}"
+        lines: "ospfv3 {{ ospfv3.process_id }} ipv6 area 0"
+      loop: "{{ ospfv3.interfaces_enabled | default([]) }}"
+      when: ospfv3 is defined
+
+    # ==========================================
+    # PHẦN 3: CẤU HÌNH BGP NÂNG CAO
+    # ==========================================
+    - name: 3.1 Tu dong tao Route-map neu co khai bao Attribute (LP, MED, AS_PATH)
+      cisco.ios.ios_config:
+        parents: "route-map RM_BGP_IN_{{ item.ip }} permit 10"
+        lines:
+          - "set local-preference {{ item.set_local_pref | default(omit) }}"
+          - "set metric {{ item.set_med | default(omit) }}"
+          - "set as-path prepend {{ item.set_as_path_prepend | default(omit) }}"
+          - "set weight {{ item.weight | default(omit) }}"
+      loop: "{{ bgp.neighbors | default([]) }}"
+      when: >
+        bgp is defined and (
+        item.set_local_pref is not none or 
+        item.set_med is not none or 
+        item.set_as_path_prepend is not none or 
+        item.weight is not none)
+
+    - name: 3.2 Cau hinh BGP Global & Neighbors
+      cisco.ios.ios_config:
+        parents: "router bgp {{ bgp.local_as }}"
+        lines:
+          - "bgp router-id {{ bgp.router_id | default(omit) }}"
+          - "neighbor {{ item.ip }} remote-as {{ item.remote_as }}"
+          # Bật Route Reflector nếu web gửi chữ True
+          - "{{ 'neighbor ' + item.ip + ' route-reflector-client' if item.route_reflector_client else omit }}"
+          # Tự động gán Route-map vào Neighbor nếu Route-map đó được tạo ở bước 3.1
+          - "{{ 'neighbor ' + item.ip + ' route-map RM_BGP_IN_' + item.ip + ' in' if (item.set_local_pref is not none or item.set_med is not none or item.set_as_path_prepend is not none or item.weight is not none) else omit }}"
+      loop: "{{ bgp.neighbors | default([]) }}"
+      when: bgp is defined
+
+    - name: 3.3 Cau hinh BGP Redistribute & Networks
+      cisco.ios.ios_config:
+        parents: "router bgp {{ bgp.local_as }}"
+        lines:
+          - "redistribute {{ item.protocol }}"
+      loop: "{{ bgp.redistributes | default([]) }}"
+      when: bgp is defined

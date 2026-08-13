@@ -1,0 +1,33 @@
+body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #e9ecef; margin: 0; padding: 20px; }
+.container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+h2 { color: #2c3e50; text-align: center; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-top: 0;}
+
+/* CSS cho hệ thống Tab */
+.tab { overflow: hidden; background-color: #f1f1f1; border-radius: 5px; display: flex; flex-wrap: wrap; }
+.tab button { background-color: inherit; border: none; outline: none; cursor: pointer; padding: 12px 10px; transition: 0.3s; flex: 1; font-size: 14px; font-weight: bold; color: #555; }
+.tab button:hover { background-color: #ddd; }
+.tab button.active { background-color: #3498db; color: white; }
+
+.tabcontent { display: none; padding: 20px 0; animation: fadeEffect 0.5s; }
+@keyframes fadeEffect { from {opacity: 0;} to {opacity: 1;} }
+
+/* Chia cột cho form đẹp hơn */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.form-group { display: flex; flex-direction: column; }
+
+label { margin-top: 8px; font-weight: 600; color: #34495e; font-size: 13px; }
+input, select { width: 100%; padding: 10px; margin-top: 4px; box-sizing: border-box; border: 1px solid #ced4da; border-radius: 4px; }
+
+.btn-submit { margin-top: 20px; width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+.btn-submit:hover { background: #218838; }
+
+#terminal-box { margin-top: 20px; padding: 15px; background: #1e1e1e; color: #4af626; border-radius: 5px; display: none; white-space: pre-wrap; font-family: monospace; max-height: 250px; overflow-y: auto; }
+
+/* BỔ SUNG CSS CHO DANH SÁCH CỔNG ĐỘNG */
+.interface-row { display: flex; gap: 10px; margin-top: 10px; align-items: center; }
+.interface-row input { margin-top: 0; flex: 1; }
+.btn-danger { background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;}
+.btn-danger:hover { background: #c82333; }
+.btn-secondary { background: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-top: 15px; font-size: 14px;}
+.btn-secondary:hover { background: #5a6268; }
+.dynamic-section { margin-top: 20px; border-top: 1px dashed #ccc; padding-top: 15px; }
