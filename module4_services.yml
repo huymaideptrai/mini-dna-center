@@ -1,0 +1,128 @@
+- name: Cau hinh Module 4 - Services & Management
+  hosts: "{{ target_ip | default('all') }}"
+  gather_facts: false
+  become: yes
+  become_method: enable
+  
+  tasks:
+    # ==========================================
+    # 1. BẢO MẬT TRUY CẬP (AAA: RADIUS & TACACS+)
+    # ==========================================
+    - name: 1.1 Kich hoat AAA tren Router
+      cisco.ios.ios_config:
+        lines: "aaa new-model"
+      when: aaa is defined and (aaa | length > 0)
+
+    - name: 1.2 Cau hinh RADIUS Server
+      cisco.ios.ios_config:
+        parents: "radius server {{ item.ip }}"
+        lines:
+          - "address ipv4 {{ item.ip }}"
+          - "key {{ item.key }}"
+      loop: "{{ aaa }}"
+      when: aaa is defined and item.type == 'radius'
+
+    - name: 1.3 Cau hinh TACACS+ Server
+      cisco.ios.ios_config:
+        parents: "tacacs server {{ item.ip }}"
+        lines:
+          - "address ipv4 {{ item.ip }}"
+          - "key {{ item.key }}"
+      loop: "{{ aaa }}"
+      when: aaa is defined and item.type == 'tacacs+'
+
+    # ==========================================
+    # 2. HỆ THỐNG GHI NHẬT KÝ (SYSLOG)
+    # ==========================================
+    - name: 2.1 Cau hinh Syslog Host va Trap Level
+      cisco.ios.ios_config:
+        lines:
+          - "logging host {{ item.ip }}"
+          - "logging trap {{ item.level }}"
+      loop: "{{ syslog }}"
+      when: syslog is defined
+
+    - name: 2.2 Cau hinh ep Source Interface cho Syslog
+      cisco.ios.ios_config:
+        lines: "logging source-interface {{ item.source_interface }}"
+      loop: "{{ syslog }}"
+      when: syslog is defined and item.source_interface is not none and item.source_interface != ''
+
+    # ==========================================
+    # 3. TRUYỀN TẢI FILE (FTP)
+    # ==========================================
+    - name: 3. Cau hinh FTP Server Credentials
+      cisco.ios.ios_config:
+        lines:
+          - "ip ftp username {{ item.user }}"
+          - "ip ftp password {{ item.passw }}"
+      loop: "{{ file_transfer }}"
+      when: file_transfer is defined and item.type == 'ftp' and item.user is not none
+
+    # ==========================================
+    # 4. CẤU HÌNH DHCP (POOL & RELAY)
+    # ==========================================
+    - name: 4.1 Cau hinh DHCP Excluded Address (IP Loai tru)
+      cisco.ios.ios_config:
+        lines: "ip dhcp excluded-address {{ item.exclude }}"
+      loop: "{{ dhcp_pools }}"
+      when: dhcp_pools is defined and item.exclude is not none and item.exclude != ''
+
+    - name: 4.2 Cau hinh DHCP Pool
+      cisco.ios.ios_config:
+        parents: "ip dhcp pool {{ item.name }}"
+        lines:
+          - "network {{ item.net }} {{ item.mask }}"
+          - "{% if item.gw %}default-router {{ item.gw }}{% endif %}"
+          - "{% if item.dns %}dns-server {{ item.dns }}{% endif %}"
+      loop: "{{ dhcp_pools }}"
+      when: dhcp_pools is defined
+
+    - name: 4.3 Cau hinh DHCP Relay (IP Helper-Address) tren Cong
+      cisco.ios.ios_config:
+        parents: "interface {{ item.interface }}"
+        lines: "ip helper-address {{ item.helper_ip }}"
+      loop: "{{ dhcp_relays }}"
+      when: dhcp_relays is defined
+
+    # ==========================================
+    # 5. GIÁM SÁT CHẤT LƯỢNG MẠNG (IP SLA)
+    # ==========================================
+    - name: 5.1 Khoi tao tien trinh IP SLA
+      cisco.ios.ios_config:
+        parents: "ip sla {{ item.id }}"
+        lines:
+          - "{{ item.protocol }} {{ item.dest }}{% if item.source_interface %} source-interface {{ item.source_interface }}{% endif %}"
+          - "frequency {{ item.freq }}"
+      loop: "{{ ipsla }}"
+      when: ipsla is defined
+
+    - name: 5.2 Len lich cho IP SLA chay lien tuc
+      cisco.ios.ios_config:
+        lines: "ip sla schedule {{ item.id }} life forever start-time now"
+      loop: "{{ ipsla }}"
+      when: ipsla is defined and item.sched == 'life forever'
+
+    # ==========================================
+    # 6. ĐỒNG BỘ THỜI GIAN (NTP)
+    # ==========================================
+    - name: 6.1 Cau hinh NTP Global (Client / Peer / Master)
+      cisco.ios.ios_config:
+        lines:
+          - "{% if item.role == 'client' %}ntp server {{ item.ip_address }}{% elif item.role == 'peer' %}ntp peer {{ item.ip_address }}{% elif item.role == 'master' %}ntp master {{ item.stratum }}{% endif %}"
+      loop: "{{ ntp }}"
+      when: ntp is defined and item.role in ['client', 'peer', 'master']
+
+    - name: 6.2 Cau hinh NTP Broadcast/Multicast (Chieu Phat - Send)
+      cisco.ios.ios_config:
+        parents: "interface {{ item.interface }}"
+        lines: "ntp {{ item.role }}{% if item.role == 'multicast' %} {{ item.ip_address }}{% endif %}"
+      loop: "{{ ntp }}"
+      when: ntp is defined and item.role in ['broadcast', 'multicast'] and item.direction == 'send'
+
+    - name: 6.3 Cau hinh NTP Broadcast/Multicast (Chieu Nhan - Receive)
+      cisco.ios.ios_config:
+        parents: "interface {{ item.interface }}"
+        lines: "ntp {{ item.role }} client{% if item.role == 'multicast' %} {{ item.ip_address }}{% endif %}"
+      loop: "{{ ntp }}"
+      when: ntp is defined and item.role in ['broadcast', 'multicast'] and item.direction == 'receive'
