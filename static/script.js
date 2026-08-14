@@ -549,7 +549,6 @@ window.sendModule3 = function() {
     const data = {
         target_ip: targetIp,
         nat: {
-            dynamic: {
             mode: document.getElementById('nat_type_select').value,
             inside_interfaces: insideInts,
             outside_interfaces: outsideInts,
@@ -565,7 +564,7 @@ window.sendModule3 = function() {
             apply_interface: document.getElementById('m3_qos_int') ? document.getElementById('m3_qos_int').value.trim() : "",
             classes: qosClasses
         }
-    };
+    }
     console.log("📦 Dữ liệu Module 3:", data);
     window.callAPI('/api/config/module3-protocol', data, 'btn-mod3');
 };
@@ -645,10 +644,37 @@ window.addSyslogRow = function() {
         <div class="card-body position-relative border-start border-3 border-primary p-3 bg-white">
             <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-0 px-2" onclick="this.closest('.card').remove()">X</button>
             <div class="row align-items-end pt-2 pe-3">
-                <div class="col-md-6 mb-2 mb-md-0"><label class="form-label small fw-bold text-muted">Syslog Server IP</label><input type="text" class="form-control syslog-ip" placeholder="VD: 192.168.1.50"></div>
-                <div class="col-md-6"><label class="form-label small fw-bold text-muted">Trap Level</label>
-                    <select class="form-select syslog-level"><option value="7">7 - Debugging (Tất cả)</option><option value="6">6 - Informational</option><option value="4" selected>4 - Warnings</option><option value="0">0 - Emergencies (Chỉ lỗi nặng)</option></select>
+                <div class="col-md-4 mb-2"><label class="form-label small fw-bold text-muted">Syslog Server IP</label><input type="text" class="form-control syslog-ip" placeholder="VD: 192.168.1.50"></div>
+                <div class="col-md-4 mb-2"><label class="form-label small fw-bold text-muted">Trap Level (0-7)</label>
+                    <select class="form-select syslog-level">
+                        <option value="0">0 - Emergencies</option>
+                        <option value="1">1 - Alerts</option>
+                        <option value="2">2 - Critical</option>
+                        <option value="3">3 - Errors</option>
+                        <option value="4" selected>4 - Warnings</option>
+                        <option value="5">5 - Notifications</option>
+                        <option value="6">6 - Informational</option>
+                        <option value="7">7 - Debugging</option>
+                    </select>
                 </div>
+                <div class="col-md-4 mb-2"><label class="form-label small fw-bold text-muted">Source Interface (Tùy chọn)</label><input type="text" class="form-control syslog-src" placeholder="VD: Loopback0"></div>
+            </div>
+        </div>
+    `;
+    container.appendChild(row);
+};
+
+window.addDhcpRelayRow = function() {
+    const container = document.getElementById('dhcp-relay-container');
+    if(!container) return;
+    const row = document.createElement('div');
+    row.className = 'dhcp-relay-row card mb-2 border-0 shadow-sm';
+    row.innerHTML = `
+        <div class="card-body position-relative border-start border-3 border-info p-3 bg-white">
+            <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-0 px-2" onclick="this.closest('.card').remove()">X</button>
+            <div class="row align-items-end pt-2 pe-3">
+                <div class="col-md-6 mb-2"><label class="form-label small fw-bold text-muted">Cổng nhận IP (Interface)</label><input type="text" class="form-control dhcp-relay-int" placeholder="VD: G0/1"></div>
+                <div class="col-md-6 mb-2"><label class="form-label small fw-bold text-muted">IP Helper Address</label><input type="text" class="form-control dhcp-relay-ip" placeholder="VD: 10.0.0.100"></div>
             </div>
         </div>
     `;
@@ -703,13 +729,19 @@ window.addIpSlaRow = function() {
     const row = document.createElement('div');
     row.className = 'ipsla-row card mb-2 border-0 shadow-sm';
     row.innerHTML = `
-        <div class="card-body position-relative border-start border-3 border-warning p-3 bg-white">
+    <div class="card-body position-relative border-start border-3 border-warning p-3 bg-white">
             <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-0 px-2" onclick="this.closest('.card').remove()">X</button>
             <div class="row align-items-end pt-2 pe-3">
-                <div class="col-md-2 mb-2 mb-md-0"><label class="form-label small fw-bold text-muted">SLA ID</label><input type="number" class="form-control sla-id" value="1"></div>
-                <div class="col-md-4 mb-2 mb-md-0"><label class="form-label small fw-bold text-muted">IP Đích (Ping)</label><input type="text" class="form-control sla-dest" placeholder="VD: 8.8.8.8"></div>
-                <div class="col-md-3 mb-2 mb-md-0"><label class="form-label small fw-bold text-muted">Tần suất</label><input type="number" class="form-control sla-freq" value="5"></div>
-                <div class="col-md-3 mb-2 mb-md-0"><label class="form-label small fw-bold text-muted">Lịch biểu</label><select class="form-select sla-sched"><option value="life forever">Life Forever (Chạy luôn)</option></select></div>
+                <div class="col-md-2 mb-2"><label class="form-label small fw-bold text-muted">SLA ID</label><input type="number" class="form-control sla-id" value="1"></div>
+                <div class="col-md-3 mb-2"><label class="form-label small fw-bold text-muted">Giao thức</label>
+                    <select class="form-select sla-proto"><option value="icmp-echo">ICMP Echo</option><option value="udp-echo">UDP Echo</option><option value="tcp-connect">TCP Connect</option></select>
+                </div>
+                <div class="col-md-3 mb-2"><label class="form-label small fw-bold text-muted">IP Đích</label><input type="text" class="form-control sla-dest" placeholder="VD: 8.8.8.8"></div>
+                <div class="col-md-4 mb-2"><label class="form-label small fw-bold text-muted">Source Interface</label><input type="text" class="form-control sla-src" placeholder="VD: G0/0"></div>
+            </div>
+            <div class="row align-items-end pe-3 mt-2">
+                <div class="col-md-4 mb-2"><label class="form-label small fw-bold text-muted">Tần suất (Giây)</label><input type="number" class="form-control sla-freq" value="5"></div>
+                <div class="col-md-4 mb-2"><label class="form-label small fw-bold text-muted">Lịch biểu</label><select class="form-select sla-sched"><option value="life forever">Life Forever (Chạy luôn)</option></select></div>
             </div>
         </div>
     `;

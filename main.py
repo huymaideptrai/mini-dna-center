@@ -260,6 +260,7 @@ def config_module4(data: Module4Config):
     except subprocess.CalledProcessError as e:
         return {"status": "error", "ansible_log": e.stdout}
 
+# Module 5
 
 class AaaItem(BaseModel):
     type: str
@@ -269,26 +270,33 @@ class AaaItem(BaseModel):
 class SyslogItem(BaseModel):
     ip: str
     level: int
+    source_int: Optional[str] = None
 
 class FtpItem(BaseModel):
     type: str
     ip: str
-    user: str = ""
-    pass_key: str = "" # Dùng pass_key vì pass là từ khóa của Python
+    user: Optional[str] = None
+    pass_key: Optional[str] = None
 
 class DhcpItem(BaseModel):
     name: str
     net: str
     mask: str
-    gw: str
-    dns: str
-    exclude: str
+    gw: Optional[str] = None
+    dns: Optional[str] = None
+    exclude: Optional[str] = None
+
+class DhcpRelayItem(BaseModel):
+    interface: str
+    helper_ip: str
 
 class IpSlaItem(BaseModel):
     id: int
     dest: str
     freq: int
     sched: str
+    protocol: str
+    source_interface: Optional[str] = None
 
 class NtpItem(BaseModel):
     role: Literal["client", "master", "peer", "broadcast", "multicast"]
@@ -303,6 +311,7 @@ class Module5Config(BaseModel):
     syslog: List[SyslogItem] = []
     file_transfer: List[FtpItem] = []
     dhcp: List[DhcpItem] = []
+    dhcp_relays: List[DhcpRelayItem] = []
     ipsla: List[IpSlaItem] = []
     ntp: List[NtpItem] = []
 
