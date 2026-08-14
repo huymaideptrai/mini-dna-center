@@ -83,131 +83,71 @@
 
 
         <!-- ========================================== -->
-        <!-- TAB 1: ĐỊNH TUYẾN                      -->
+        <!-- TAB 1: ĐỊNH TUYẾN (ROUTING)                -->
         <!-- ========================================== -->
         <div id="Mod1" class="tabcontent" style="display: none;">
-
-            <!-- KHU VỰC A: CẤU HÌNH OSPF -->
-            <div class="card mb-4 border-secondary shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0 fw-bold" style="color: #d35400;">A. CẤU HÌNH OSPF</h5>
-                </div>
-                <div class="card-body">
-
-                    <!-- 1. TIẾN TRÌNH (Nền Cam nhạt) -->
-                    <div style="background: #fff3e0; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ffe0b2;">
-                        <h6 class="fw-bold mb-3" style="color: #e65100;">1. Thông số Tiến trình & Tùy chọn (Process, Passive, Summary)</h6>
-                        
-                        <!-- Hàng 1: Cơ bản -->
-                        <div class="row mb-3">
-                            <div class="col-md-4 mb-3 mb-md-0">
-                                <label class="form-label fw-bold">OSPF Process ID</label>
-                                <input type="number" class="form-control" id="m2_ospf_pid" value="1">
-                            </div>
-                            <div class="col-md-4 mb-3 mb-md-0">
-                                <label class="form-label fw-bold">Router ID</label>
-                                <input type="text" class="form-control" id="m2_ospf_rid" value="1.1.1.1">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Redistribute (Phân phối)</label>
-                                <select class="form-select" id="m2_ospf_redist">
-                                    <option value="">Không cấu hình</option>
-                                    <option value="static">Static (Tĩnh)</option>
-                                    <option value="connected">Connected (Trực tiếp)</option>
-                                    <option value="bgp">BGP</option>
-                                </select>
-                            </div>
+            
+            <!-- BẢNG CHỌN GIAO THỨC -->
+            <div class="card mb-4 border-primary shadow-sm mt-3">
+                <div class="card-header bg-primary text-white"><h5 class="mb-0 fw-bold">CHỌN GIAO THỨC ĐỊNH TUYẾN</h5></div>
+                <div class="card-body bg-light">
+                    <div class="d-flex flex-wrap gap-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="chk-static" onchange="toggleRouting('static')">
+                            <label class="form-check-label fw-bold" for="chk-static">Static Route</label>
                         </div>
-                        
-                        <hr class="text-black-50">
-
-                        <!-- Hàng 2: Cổng Active -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <label class="form-label fw-bold text-success">Active Interfaces (Cổng Ngoại Lệ)</label>
-                                <p class="small text-muted mb-2"><i>Mặc định OSPF đã bật <b>Passive-Interface Default</b>. Hãy khai báo các cổng bạn muốn <b>bật lại</b> OSPF (Cho phép gửi Hello) vào đây.</i></p>
-                                <div id="ospf-active-container" class="mb-2"></div>
-                                <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="addOspfActiveRow()">+ Thêm Cổng Active</button>
-                            </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="chk-ospf" onchange="toggleRouting('ospf')">
+                            <label class="form-check-label fw-bold" for="chk-ospf">OSPF</label>
                         </div>
-
-                        <!-- Hàng 3: Summary -->
-                        <div class="row">
-                            <div class="col-12">
-                                <label class="form-label fw-bold text-primary">Gom Route (Area Range Summary)</label>
-                                <p class="small text-muted mb-2"><i>Sử dụng trên Router ABR để tóm tắt các dải mạng trước khi quảng bá sang Area khác.</i></p>
-                                <div id="ospf-summary-container" class="mb-2"></div>
-                                <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="addOspfSummaryRow()">+ Thêm Summary</button>
-                            </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="chk-eigrp" onchange="toggleRouting('eigrp')">
+                            <label class="form-check-label fw-bold" for="chk-eigrp">EIGRP</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="chk-isis" onchange="toggleRouting('isis')">
+                            <label class="form-check-label fw-bold" for="chk-isis">IS-IS</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="chk-bgp" onchange="toggleRouting('bgp')">
+                            <label class="form-check-label fw-bold" for="chk-bgp">BGP</label>
                         </div>
                     </div>
-
-                    <!-- 2. NETWORKS & AREA TYPES (Nền Vàng nhạt) -->
-                    <div style="background: #fff9c4; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #fff59d;">
-                        <h6 class="fw-bold mb-3" style="color: #f39c12;">2. Khai báo Mạng & Khu vực (Networks & Areas)</h6>
-                        
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-dark mb-2">a. Khai báo dải mạng (Network)</label>
-                            <div id="ospf-network-container" class="mb-2"></div>
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="addOspfNetworkRow()">+ Thêm Network</button>
-                        </div>
-
-                        <div class="mb-2">
-                            <label class="form-label fw-bold text-dark mb-2">b. Tùy chỉnh Area Type (Tùy chọn)</label>
-                            <div id="ospf-area-type-container" class="mb-2"></div>
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="addOspfAreaTypeRow()">+ Thêm Area Type (Stub / NSSA)</button>
-                        </div>
-                    </div>
-
-                    <!-- 3. INTERFACES & AUTHENTICATION (Nền Đỏ/Nâu nhạt) -->
-                    <div style="background: #fbe9e7; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #ffccbc;">
-                        <h6 class="fw-bold mb-3" style="color: #c0392b;">3. Tùy chỉnh Cổng & Xác thực (Interfaces & Authentication)</h6>
-                        <div id="ospf-interface-container" class="mb-2"></div>
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="addOspfInterfaceRow()">+ Cấu hình Cổng & Authen</button>
-                    </div>
-
                 </div>
             </div>
 
-            <!-- KHU VỰC B: BGP NÂNG CAO -->
-            <div class="card mb-4 border-secondary shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0 fw-bold" style="color: #2980b9;">B. CẤU HÌNH BGP</h5>
-                </div>
-                <div class="card-body">
-                    
-                    <!-- BGP (Nền Xanh dương nhạt) -->
-                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #bbdefb;">
-                        <div class="row mb-4">
-                            <div class="col-md-3 mb-3 mb-md-0"><label class="form-label fw-semibold">Local AS</label><input type="number" class="form-control" id="m2_bgp_as" value="65000"></div>
-                            <div class="col-md-3 mb-3 mb-md-0"><label class="form-label fw-semibold">BGP Router ID</label><input type="text" class="form-control" id="m2_bgp_rid" value="1.1.1.1"></div>
-                            <div class="col-md-3 mb-3 mb-md-0">
-                                <label class="form-label fw-semibold">Redistribute</label>
-                                <select class="form-select" id="m2_bgp_redist">
-                                    <option value="">Không cấu hình</option>
-                                    <option value="static">Static</option>
-                                    <option value="connected">Connected</option>
-                                    <option value="ospf">OSPF</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label fw-semibold">Aggregate Address (Summary)</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="m2_bgp_sum_ip" placeholder="IP">
-                                    <input type="text" class="form-control" id="m2_bgp_sum_mask" placeholder="Mask">
-                                </div>
-                            </div>
-                        </div>
-
-                        <h6 class="fw-bold mb-3" style="color: #1565c0;">Danh sách Hàng xóm BGP (Neighbors & Attributes):</h6>
-                        <div id="bgp-neighbor-container" class="mb-2"></div>
-                        <button type="button" class="btn btn-secondary btn-sm mb-2" onclick="addBgpNeighborRow()">+ Thêm Neighbor BGP</button>
-                    </div>
-
-                </div>
+            <!-- CÁC KHU VỰC CẤU HÌNH (Mặc định ẩn) -->
+            <!-- 1. Static Route -->
+            <div id="sec-static" class="card mb-3 border-secondary shadow-sm" style="display: none;">
+                <div class="card-header bg-light"><h6 class="mb-0 fw-bold text-dark">1. Định tuyến Tĩnh (Static Route)</h6></div>
+                <div class="card-body"><div id="static-container" class="mb-2"></div><button type="button" class="btn btn-secondary btn-sm" onclick="addStaticRow()">+ Thêm Static Route</button></div>
             </div>
 
-            <button class="btn btn-primary btn-lg w-100 fw-bold shadow-sm" id="btn-mod2" onclick="sendModule2()">🚀 ÁP DỤNG ĐỊNH TUYẾN NÂNG CAO</button>
+            <!-- 2. OSPF -->
+            <div id="sec-ospf" class="card mb-3 border-secondary shadow-sm" style="display: none;">
+                <div class="card-header bg-light"><h6 class="mb-0 fw-bold text-info">2. Giao thức OSPF</h6></div>
+                <div class="card-body"><div id="ospf-container" class="mb-2"></div><button type="button" class="btn btn-secondary btn-sm" onclick="addOspfRow()">+ Thêm OSPF Network</button></div>
+            </div>
+
+            <!-- 3. EIGRP -->
+            <div id="sec-eigrp" class="card mb-3 border-secondary shadow-sm" style="display: none;">
+                <div class="card-header bg-light"><h6 class="mb-0 fw-bold text-success">3. Giao thức EIGRP</h6></div>
+                <div class="card-body"><div id="eigrp-container" class="mb-2"></div><button type="button" class="btn btn-secondary btn-sm" onclick="addEigrpRow()">+ Thêm EIGRP Network</button></div>
+            </div>
+
+            <!-- 4. IS-IS -->
+            <div id="sec-isis" class="card mb-3 border-secondary shadow-sm" style="display: none;">
+                <div class="card-header bg-light"><h6 class="mb-0 fw-bold text-warning">4. Giao thức IS-IS</h6></div>
+                <div class="card-body"><div id="isis-container" class="mb-2"></div><button type="button" class="btn btn-secondary btn-sm" onclick="addIsisRow()">+ Thêm IS-IS Interface</button></div>
+            </div>
+
+            <!-- 5. BGP -->
+            <div id="sec-bgp" class="card mb-4 border-secondary shadow-sm" style="display: none;">
+                <div class="card-header bg-light"><h6 class="mb-0 fw-bold text-danger">5. Giao thức BGP</h6></div>
+                <div class="card-body"><div id="bgp-container" class="mb-2"></div><button type="button" class="btn btn-secondary btn-sm" onclick="addBgpRow()">+ Thêm BGP Neighbor</button></div>
+            </div>
+
+            <button class="btn btn-primary btn-lg w-100 fw-bold shadow-sm" id="btn-mod1" onclick="sendModule1()">🚀 ÁP DỤNG ROUTING</button>
         </div>
 
 

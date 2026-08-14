@@ -7,6 +7,35 @@
     # ==========================================
     # PHẦN 1: CẤU HÌNH OSPF & OSPF TỚI CÁC CỔNG
     # ==========================================
+    - name: Cau hinh Static Route
+      cisco.ios.ios_config:
+        lines: "ip route {{ item.net }} {{ item.mask }} {{ item.next_hop }}{% if item.ad %} {{ item.ad }}{% endif %}"
+      loop: "{{ static_routes }}"
+      when: static_routes is defined and (static_routes | length > 0)
+
+    # 2. EIGRP
+    - name: Cau hinh EIGRP Global
+      cisco.ios.ios_config:
+        parents: "router eigrp {{ item.asn }}"
+        lines: "network {{ item.network }} {{ item.wildcard }}"
+      loop: "{{ eigrp }}"
+      when: eigrp is defined and (eigrp | length > 0)
+
+    # 3. IS-IS
+    - name: Cau hinh IS-IS NET
+      cisco.ios.ios_config:
+        parents: "router isis"
+        lines: "net {{ item.net_title }}"
+      loop: "{{ isis }}"
+      when: isis is defined and (isis | length > 0)
+
+    - name: Bat IS-IS tren Interface
+      cisco.ios.ios_config:
+        parents: "interface {{ item.interface }}"
+        lines: "ip router isis"
+      loop: "{{ isis }}"
+      when: isis is defined and (isis | length > 0)
+
     - name: 1.1 Cau hinh OSPF (Tien trinh, Router-ID, Passive)
       cisco.ios.ios_config:
         parents: "router ospf {{ ospf.process_id }}"

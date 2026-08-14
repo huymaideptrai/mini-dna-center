@@ -23,14 +23,10 @@ class BasicInterface(BaseModel):
     mask: str
 
 class BasicConfig(BaseModel):
-    hostname: str
+    hostname: Optional[str] = None
     domain_lookup: bool = False
-    domain_name: str
-    admin_user: str
-    admin_pass: str
-    transport: str = "ssh telnet"
-    ssh_version: int = 2
-    ssh_key_size: int = 2048
+    admin_user: Optional[str] = None
+    admin_pass: Optional[str] = None
     interfaces: List[BasicInterface] = []
 
 class SubInterfaceItem(BaseModel):
@@ -63,13 +59,19 @@ def config_basic(data: Module0Config):
 from typing import List, Optional
 from pydantic import BaseModel
 
+class StaticRouteItem(BaseModel):
+    net: str
+    mask: str
+    next_hop: str
+    ad: Optional[int] = None
+
 class RedistributeConfig(BaseModel):
-    protocol: str                       # VD: "static", "connected", "bgp 65000"
+    protocol: str
     metric: Optional[int] = None
 
 class SummaryConfig(BaseModel):
-    network: str                        # VD: "10.0.0.0"
-    mask: str                           # VD: "255.0.0.0"
+    network: str
+    mask: str
 
 class OspfArea(BaseModel):
     area_id: str                        # VD: "1", "2", hoặc "0.0.0.1"
@@ -115,12 +117,23 @@ class BGPConfig(BaseModel):
     redistributes: List[RedistributeConfig] = []
     summaries: List[SummaryConfig] = []         # (aggregate-address trong BGP)
 
+class EigrpItem(BaseModel):
+    asn: int
+    network: str
+    wildcard: str
+
+class IsisItem(BaseModel):
+    net_title: str       # Network Entity Title (VD: 49.0001.0000.0000.0001.00)
+    interface: str
+
 class Module2Config(BaseModel):
     target_ip: str
     ospf: Optional[OSPFConfig] = None
     ospfv3: Optional[OSPFv3Config] = None
     bgp: Optional[BGPConfig] = None
-
+    eigrp: List[EigrpItem] = []
+    isis: List[IsisItem] = []
+    static_routes: List[StaticRouteItem] = []
 
 # ==========================================
 # MODULE 3: VPN & WAN (GRE, DMVPN PHASE 3 & IPSEC)
