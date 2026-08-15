@@ -363,62 +363,11 @@
                     <h5 class="mb-0 fw-bold">2. Khai Báo Access List (ACL)</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-3 align-items-end">
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold">Loại ACL</label>
-                            <select class="form-select border-primary" id="acl_type_select">
-                                <option value="standard">Standard</option>
-                                <option value="extended">Extended</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold">Tên / Số ACL</label>
-                            <input type="text" class="form-control" placeholder="VD: 10 hoặc LAN_ACL">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold">Hành động</label>
-                            <select class="form-select">
-                                <option value="permit">Permit (Cho phép)</option>
-                                <option value="deny">Deny (Chặn)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Khối Nguồn -->
-                    <div class="row mb-3 bg-light p-3 rounded">
-                        <div class="col-md-2 d-none" id="acl_protocol_col">
-                            <label class="form-label fw-semibold text-danger">Giao thức</label>
-                            <select class="form-select">
-                                <option value="ip">IP</option>
-                                <option value="tcp">TCP</option>
-                                <option value="udp">UDP</option>
-                            </select>
-                        </div>
-                        <div class="col-md-5">
-                            <label class="form-label fw-semibold">IP Nguồn (Source IP)</label>
-                            <input type="text" class="form-control" placeholder="VD: 192.168.1.0">
-                        </div>
-                        <div class="col-md-5">
-                            <label class="form-label fw-semibold">Mask Nguồn</label>
-                            <input type="text" class="form-control" placeholder="VD: 0.0.0.255">
-                        </div>
-                    </div>
-
-                    <!-- Khối Đích -->
-                    <div class="row mb-3 bg-light p-3 rounded border-top d-none" id="acl_extended_fields">
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold text-danger">IP Đích (Destination)</label>
-                            <input type="text" class="form-control" placeholder="VD: any hoặc 8.8.8.8">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold text-danger">Mask Đích</label>
-                            <input type="text" class="form-control" placeholder="Để trống nếu là 'any'">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold text-danger">Port</label>
-                            <input type="text" class="form-control" placeholder="VD: eq 80">
-                        </div>
-                    </div>
+                    <!-- Hộp chứa toàn bộ các ACL -->
+                    <div id="acl-container" class="mb-3"></div>
+                    
+                    <!-- Nút Thêm ACL mới -->
+                    <button type="button" class="btn btn-outline-primary fw-bold" onclick="addAclRow()">+ Khởi tạo ACL mới</button>
                 </div>
             </div>
 
