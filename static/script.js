@@ -880,6 +880,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+const aclSelect = document.getElementById('acl_type_select');
+    if (aclSelect) {
+        aclSelect.addEventListener('change', function() {
+            const protoCol = document.getElementById('acl_protocol_col');
+            const extFields = document.getElementById('acl_extended_fields');
+            
+            if (this.value === 'extended') {
+                // Hiện Giao thức và các trường Đích/Port
+                if(protoCol) protoCol.classList.remove('d-none');
+                if(extFields) extFields.classList.remove('d-none');
+            } else {
+                // Ẩn đi nếu chọn lại Standard
+                if(protoCol) protoCol.classList.add('d-none');
+                if(extFields) extFields.classList.add('d-none');
+            }
+        });
+    }
 
 
 // ==========================================
