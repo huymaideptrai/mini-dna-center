@@ -48,7 +48,7 @@
     - name: 1.2 Cau hinh OSPF Networks
       cisco.ios.ios_config:
         parents: "router ospf {{ ospf.process_id }}"
-        lines: "network {{ item }}"
+        lines: "network {{ item.network }} {{ item.wildcard }} area {{ item.area }}"
       loop: "{{ ospf.networks | default([]) }}"
       when: ospf is defined
 
@@ -59,13 +59,20 @@
       loop: "{{ ospf.areas | default([]) }}"
       when: ospf is defined
 
-    - name: 1.4 Cau hinh OSPF Redistribute & Summary
+    - name: 1.4 Cau hinh OSPF Redistribute
       cisco.ios.ios_config:
         parents: "router ospf {{ ospf.process_id }}"
         lines:
           - "redistribute {{ item.protocol }} metric {{ item.metric | default(20) }} subnets"
       loop: "{{ ospf.redistributes | default([]) }}"
       when: ospf is defined
+
+    - name: Cau hinh OSPF Summary Route (Inter-Area)
+      cisco.ios.ios_config:
+        parents: "router ospf {{ ospf.process_id }}"
+        lines: "area {{ item.area }} range {{ item.ip }} {{ item.mask }}"
+      loop: "{{ ospf.summaries }}"
+      when: ospf is defined and ospf.summaries is defined
 
     - name: 1.5 Chui vao cong de cau hinh OSPF Nâng cao (Type, Cost, MTU, Auth)
       cisco.ios.ios_config:

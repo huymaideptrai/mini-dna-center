@@ -54,7 +54,7 @@ def config_basic(data: Module0Config):
         return {"status": "error", "ansible_log": e.stdout}
 
 # ==========================================
-# MODULE 2: ROUTING (OSPF & BGP Nâng cao)
+# MODULE 1: ROUTING (OSPF & BGP Nâng cao)
 # ==========================================
 from typing import List, Optional
 from pydantic import BaseModel
@@ -81,16 +81,18 @@ class OspfInterface(BaseModel):
     name: str                           # VD: "GigabitEthernet0/0"
     network_type: Optional[str] = None  # CŨ: VD: "point-to-point", "broadcast"
     cost: Optional[int] = None          # MỚI
-    mtu: Optional[int] = None           # MỚI
-    auth_key: Optional[str] = None      # MỚI
+    mtu: Optional[int] = None
+    auth_key: Optional[str] = None
+    ello: Optional[int] = None         # BỔ SUNG: Thời gian Hello (Hello interval)
+    dead: Optional[int] = None
 
 class OSPFConfig(BaseModel):
     process_id: int = 1
     router_id: Optional[str] = None
     networks: List[str] = []
     passive_interfaces: Optional[List[str]] = None
-    areas: List[OspfArea] = []                  # CŨ: Cấu hình Area Type (Stub, NSSA)
-    interfaces: List[OspfInterface] = []        # GỘP: Cấu hình cổng (Network type, Cost, MTU)
+    areas: Optional[List[OspfArea]] = None                  # CŨ: Cấu hình Area Type (Stub, NSSA)
+    interfaces: Optional[List[OspfInterface]] = None
     redistributes: List[RedistributeConfig] = []# MỚI: Redistribute
     summaries: List[SummaryConfig] = []         # MỚI: Tóm tắt route (area range)
 
@@ -112,7 +114,6 @@ class BGPConfig(BaseModel):
     local_as: int
     router_id: Optional[str] = None
     networks: List[str] = []
-
     neighbors: List[BgpNeighbor] = []
     redistributes: List[RedistributeConfig] = []
     summaries: List[SummaryConfig] = []         # (aggregate-address trong BGP)
@@ -136,7 +137,7 @@ class Module2Config(BaseModel):
     static_routes: List[StaticRouteItem] = []
 
 # ==========================================
-# MODULE 3: VPN & WAN (GRE, DMVPN PHASE 3 & IPSEC)
+# MODULE 2: VPN & WAN (GRE, DMVPN PHASE 3 & IPSEC)
 # ==========================================
 class GREConfig(BaseModel):
     enabled: bool = False
@@ -206,7 +207,7 @@ def config_module3(data: Module3Config):
         return {"status": "error", "ansible_log": e.stdout}
 
 # ==========================================
-# MODULE 4: SERVICES (NAT NÂNG CAO, QoS ISP, IP SLA)
+# MODULE 3: SERVICES (NAT NÂNG CAO, QoS ISP, IP SLA)
 # ==========================================
 
 class PatAcl(BaseModel):
@@ -273,7 +274,7 @@ def config_module4(data: Module4Config):
     except subprocess.CalledProcessError as e:
         return {"status": "error", "ansible_log": e.stdout}
 
-# Module 5
+# Module 4ư
 
 class AaaItem(BaseModel):
     type: str

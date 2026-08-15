@@ -189,8 +189,13 @@ window.addOspfAreaTypeRow = function() {
             <div class="row align-items-end pt-2 pe-3">
                 <div class="col-md-6 mb-2 mb-md-0"><label class="form-label small fw-bold text-muted">Area ID</label><input type="number" class="ospf-type-area form-control" value="1"></div>
                 <div class="col-md-6 mb-2 mb-md-0">
-                    <label class="form-label small fw-bold text-muted">Area Type</label>
-                    <select class="ospf-type-sel form-select border-primary"><option value="stub">Stub</option><option value="nssa">NSSA</option></select>
+                    <label class="form-label small fw-bold text-muted">Loại Area (Area Type)</label>
+                    <select class="ospf-type-sel form-select border-primary">
+                        <option value="stub">Stub</option>
+                        <option value="stub no-summary">Totally Stub (no-summary)</option>
+                        <option value="nssa">NSSA</option>
+                        <option value="nssa no-summary">Totally NSSA (no-summary)</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -198,14 +203,21 @@ window.addOspfAreaTypeRow = function() {
     container.appendChild(row);
 };
 
-window.addOspfActiveRow = function() {
-    const container = document.getElementById('ospf-active-container');
+window.addOspfPassiveRow = function() {
+    const container = document.getElementById('ospf-passive-container');
     if (!container) return;
     const row = document.createElement('div');
-    row.className = 'ospf-active-row row mb-2 align-items-center';
+    row.className = 'ospf-passive-row card mb-2 border-0 shadow-sm';
     row.innerHTML = `
-        <div class="col-10"><input type="text" class="form-control form-control-sm ospf-active-name" placeholder="VD: GigabitEthernet0/0"></div>
-        <div class="col-2"><button type="button" class="btn btn-danger btn-sm w-100 fw-bold" onclick="this.parentElement.parentElement.remove()">X</button></div>
+        <div class="card-body position-relative border-start border-3 border-secondary p-3 bg-white">
+            <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-0 px-2" onclick="this.closest('.card').remove()">X</button>
+            <div class="row align-items-end pt-2 pe-3">
+                <div class="col-md-6 mb-2">
+                    <label class="form-label small fw-bold text-muted">Passive Interface</label>
+                    <input type="text" class="form-control ospf-passive-name" placeholder="VD: GigabitEthernet0/0">
+                </div>
+            </div>
+        </div>
     `;
     container.appendChild(row);
 };
@@ -219,17 +231,42 @@ window.addOspfInterfaceRow = function() {
         <div class="card-body position-relative bg-white p-3">
             <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 px-2 py-0 shadow-sm" onclick="this.closest('.card').remove()">X</button>
             <div class="row mb-3 pe-4">
-                <div class="col-md-6 mb-2 mb-md-0"><label class="form-label small fw-bold text-dark">Tên Cổng (Interface)</label><input type="text" class="form-control ospf-int-name" placeholder="VD: G0/0"></div>
-                <div class="col-md-6"><label class="form-label small fw-bold text-dark">Network Type</label>
+                <div class="col-md-4"><label class="form-label small fw-bold text-dark">Tên Cổng</label><input type="text" class="form-control ospf-int-name" placeholder="VD: G0/0"></div>
+                <div class="col-md-4"><label class="form-label small fw-bold text-dark">Network Type</label>
                     <select class="form-select ospf-net-type"><option value="">Mặc định</option><option value="point-to-point">Point-to-Point</option><option value="broadcast">Broadcast</option></select>
                 </div>
+                <div class="col-md-4"><label class="form-label small fw-bold text-dark">Cost</label><input type="number" class="form-control ospf-cost" placeholder="Mặc định"></div>
             </div>
             <div class="row align-items-end pe-4">
-                <div class="col-md-4 mb-2 mb-md-0"><label class="form-label small fw-bold text-dark">Cost</label><input type="number" class="form-control ospf-cost" placeholder="Mặc định"></div>
-                <div class="col-md-4 mb-2 mb-md-0"><label class="form-label small fw-bold text-dark">Authen Type</label>
+                <div class="col-md-3"><label class="form-label small fw-bold text-dark">Hello (s)</label><input type="number" class="form-control ospf-hello" placeholder="VD: 10"></div>
+                <div class="col-md-3"><label class="form-label small fw-bold text-dark">Dead (s)</label><input type="number" class="form-control ospf-dead" placeholder="VD: 40"></div>
+                <div class="col-md-3"><label class="form-label small fw-bold text-dark">Authen Type</label>
                     <select class="form-select border-primary ospf-authen-type"><option value="">Không</option><option value="message-digest">MD5</option><option value="text">Clear Text</option></select>
                 </div>
-                <div class="col-md-4"><label class="form-label small fw-bold text-dark">Key/Password</label><input type="text" class="form-control ospf-authen-key" placeholder="VD: 1 cisco123"></div>
+                <div class="col-md-3"><label class="form-label small fw-bold text-dark">Key/Pass</label><input type="text" class="form-control ospf-authen-key" placeholder="VD: 1 cisco123"></div>
+            </div>
+        </div>
+    `;
+    container.appendChild(row);
+};
+
+window.addOspfRedistributeRow = function() {
+    const container = document.getElementById('ospf-redistribute-container');
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'ospf-redis-row card mb-2 border-0 shadow-sm';
+    row.innerHTML = `
+        <div class="card-body position-relative border-start border-3 border-warning p-3 bg-white">
+            <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-0 px-2" onclick="this.closest('.card').remove()">X</button>
+            <div class="row align-items-end pt-2 pe-3">
+                <div class="col-md-6 mb-2">
+                    <label class="form-label small fw-bold text-muted">Giao thức nguồn</label>
+                    <input type="text" class="form-control ospf-redis-proto" placeholder="VD: static, bgp 65000, connected...">
+                </div>
+                <div class="col-md-6 mb-2">
+                    <label class="form-label small fw-bold text-muted">Metric (Tùy chọn)</label>
+                    <input type="number" class="form-control ospf-redis-metric" placeholder="VD: 100">
+                </div>
             </div>
         </div>
     `;
@@ -299,17 +336,62 @@ window.addIsisRow = function() {
     container.appendChild(row);
 };
 
+window.addBgpNetworkRow = function() {
+    const container = document.getElementById('bgp-network-container');
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'bgp-net-row row mb-2 align-items-center';
+    row.innerHTML = `
+        <div class="col-10"><input type="text" class="form-control form-control-sm bgp-net-ip" placeholder="VD: 192.168.1.0 mask 255.255.255.0"></div>
+        <div class="col-2"><button type="button" class="btn btn-danger btn-sm w-100 fw-bold" onclick="this.parentElement.parentElement.remove()">X</button></div>
+    `;
+    container.appendChild(row);
+};
+
+// --- BGP NEIGHBOR (NÂNG CAO) ---
 window.addBgpNeighborRow = function() {
     const container = document.getElementById('bgp-neighbor-container');
     if (!container) return;
     const row = document.createElement('div');
     row.className = 'bgp-neigh-row card mb-3 border-0 shadow-sm';
     row.innerHTML = `
-        <div class="card-body position-relative border-start border-3 border-primary p-3 bg-white">
+        <div class="card-body position-relative border-start border-3 border-danger p-3 bg-white">
+            <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-0 px-2" onclick="this.closest('.card').remove()">X</button>
+            <div class="row mb-2 pe-3">
+                <div class="col-md-4"><label class="form-label small fw-bold text-muted">Neighbor IP</label><input type="text" class="bgp-ip form-control" placeholder="VD: 2.2.2.2"></div>
+                <div class="col-md-4"><label class="form-label small fw-bold text-muted">Remote AS</label><input type="number" class="bgp-as form-control" placeholder="VD: 65001"></div>
+                <div class="col-md-4 d-flex align-items-end pb-1">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input bgp-rr" type="checkbox" id="rr_${Date.now()}">
+                        <label class="form-check-label small fw-bold text-muted" for="rr_${Date.now()}">Route Reflector Client</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row align-items-end pe-3">
+                <div class="col-md-3 mb-2"><label class="form-label small fw-bold text-muted">Weight</label><input type="number" class="bgp-weight form-control" placeholder="Tùy chọn"></div>
+                <div class="col-md-3 mb-2"><label class="form-label small fw-bold text-muted">Local Pref</label><input type="number" class="bgp-lp form-control" placeholder="Tùy chọn"></div>
+                <div class="col-md-3 mb-2"><label class="form-label small fw-bold text-muted">MED</label><input type="number" class="bgp-med form-control" placeholder="Tùy chọn"></div>
+                <div class="col-md-3 mb-2"><label class="form-label small fw-bold text-muted">AS-Path Prepend</label><input type="text" class="bgp-prepend form-control" placeholder="VD: 65000 65000"></div>
+            </div>
+        </div>
+    `;
+    container.appendChild(row);
+};
+
+// --- BGP REDISTRIBUTE & SUMMARY ---
+window.addBgpRedistributeRow = window.addOspfRedistributeRow; // Dùng chung form với OSPF cho nhanh gọn, ta sẽ lọc class lúc gom dữ liệu
+
+window.addBgpSummaryRow = function() {
+    const container = document.getElementById('bgp-summary-container');
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'bgp-sum-row card mb-2 border-0 shadow-sm';
+    row.innerHTML = `
+        <div class="card-body position-relative border-start border-3 border-danger p-3 bg-white">
             <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-0 px-2" onclick="this.closest('.card').remove()">X</button>
             <div class="row align-items-end pt-2 pe-3">
-                <div class="col-md-6 mb-2 mb-md-0"><label class="form-label small fw-bold text-muted">Neighbor IP</label><input type="text" class="bgp-ip form-control" placeholder="VD: 2.2.2.2"></div>
-                <div class="col-md-6 mb-2 mb-md-0"><label class="form-label small fw-bold text-muted">Remote AS</label><input type="number" class="bgp-as form-control" placeholder="VD: 65001"></div>
+                <div class="col-md-6 mb-2"><label class="form-label small fw-bold text-muted">Aggregate IP</label><input type="text" class="bgp-sum-ip form-control" placeholder="VD: 10.0.0.0"></div>
+                <div class="col-md-6 mb-2"><label class="form-label small fw-bold text-muted">Subnet Mask</label><input type="text" class="bgp-sum-mask form-control" placeholder="VD: 255.0.0.0"></div>
             </div>
         </div>
     `;
@@ -320,32 +402,190 @@ window.sendModule1 = function() {
     const targetIp = document.getElementById('target_router_ip').value.trim();
     if (!targetIp) { alert("⚠️ Vui lòng nhập 'Địa chỉ IP Router'!"); return; }
 
-    const data = { target_ip: targetIp, static_routes: [], ospf: [], bgp: [], eigrp: [], isis: [] };
+    const data = { 
+        target_ip: targetIp, 
+        static_routes: [], 
+        eigrp: [], 
+        isis: [],
+        ospf: null,
+        bgp: null
+    };
 
-    // Gom dữ liệu (Nếu checkbox được bật)
-    if (document.getElementById('chk-static').checked) {
+    // 1. Gom Static Route
+    if (document.getElementById('chk-static') && document.getElementById('chk-static').checked) {
         document.querySelectorAll('.static-row').forEach(row => {
             const net = row.querySelector('.static-net').value.trim();
-            if(net) data.static_routes.push({ net: net, mask: row.querySelector('.static-mask').value.trim(), next_hop: row.querySelector('.static-next').value.trim(), ad: parseInt(row.querySelector('.static-ad').value) || null });
+            if(net) data.static_routes.push({ 
+                net: net, 
+                mask: row.querySelector('.static-mask').value.trim(), 
+                next_hop: row.querySelector('.static-next').value.trim(), 
+                ad: parseInt(row.querySelector('.static-ad').value) || null 
+            });
         });
     }
 
-    if (document.getElementById('chk-eigrp').checked) {
+    // 2. Gom EIGRP
+    if (document.getElementById('chk-eigrp') && document.getElementById('chk-eigrp').checked) {
         document.querySelectorAll('.eigrp-row').forEach(row => {
             const net = row.querySelector('.eigrp-net').value.trim();
-            if(net) data.eigrp.push({ asn: parseInt(row.querySelector('.eigrp-asn').value), network: net, wildcard: row.querySelector('.eigrp-wild').value.trim() });
+            if(net) data.eigrp.push({ 
+                asn: parseInt(row.querySelector('.eigrp-asn').value), 
+                network: net, 
+                wildcard: row.querySelector('.eigrp-wild').value.trim() 
+            });
         });
     }
 
-    if (document.getElementById('chk-isis').checked) {
+    // 3. Gom IS-IS
+    if (document.getElementById('chk-isis') && document.getElementById('chk-isis').checked) {
         document.querySelectorAll('.isis-row').forEach(row => {
             const netTitle = row.querySelector('.isis-net').value.trim();
-            if(netTitle) data.isis.push({ net_title: netTitle, interface: row.querySelector('.isis-int').value.trim() });
+            if(netTitle) data.isis.push({ 
+                net_title: netTitle, 
+                interface: row.querySelector('.isis-int').value.trim() 
+            });
         });
     }
 
-    // Các đoạn mã gom dữ liệu OSPF và BGP của bạn (giữ nguyên logic tương tự) ...
-    // ...
+    // 4. Gom OSPF (Quét toàn bộ 5 loại Form của bạn)
+if (document.getElementById('chk-ospf') && document.getElementById('chk-ospf').checked) {
+        const pidInput = document.getElementById('ospf_process_id');
+        const routerIdInput = document.getElementById('ospf_router_id');
+        
+        const ospfConfig = {
+            process_id: pidInput ? parseInt(pidInput.value) : 1,
+            router_id: routerIdInput && routerIdInput.value.trim() ? routerIdInput.value.trim() : null,
+            networks: [],
+            areas: [],
+            summaries: [],
+            passive_interfaces: [],
+            interfaces: [],
+            redistributes: [] 
+        };
+
+        // Gom OSPF Networks 
+        document.querySelectorAll('.ospf-net-row').forEach(row => {
+            const ip = row.querySelector('.ospf-ip').value.trim();
+            const wildcard = row.querySelector('.ospf-wild').value.trim();
+            const area = row.querySelector('.ospf-area').value.trim();
+            if(ip) ospfConfig.networks.push(`${ip} ${wildcard} area ${area}`);
+        });
+
+        // Gom OSPF Summary 
+        document.querySelectorAll('.ospf-sum-row').forEach(row => {
+            const ip = row.querySelector('.ospf-sum-ip').value.trim();
+            const mask = row.querySelector('.ospf-sum-mask').value.trim();
+            if(ip) ospfConfig.summaries.push({ network: ip, mask: mask });
+        });
+
+        // Gom OSPF Area Type 
+        document.querySelectorAll('.ospf-area-type-row').forEach(row => {
+            const areaId = row.querySelector('.ospf-type-area').value.trim();
+            const type = row.querySelector('.ospf-type-sel').value;
+            if(areaId) ospfConfig.areas.push({ area_id: areaId, area_type: type });
+        });
+
+        // Gom OSPF Passive Interfaces 
+        document.querySelectorAll('.ospf-active-row, .ospf-passive-row').forEach(row => {
+            const input = row.querySelector('.ospf-active-name, .ospf-passive-name'); 
+            if(input && input.value.trim()) ospfConfig.passive_interfaces.push(input.value.trim());
+        });
+
+        // Gom OSPF Interfaces 
+        document.querySelectorAll('.ospf-int-row').forEach(row => {
+            const name = row.querySelector('.ospf-int-name').value.trim();
+            if(name) {
+                const intObj = {
+                    name: name,
+                    network_type: row.querySelector('.ospf-net-type').value || null,
+                    cost: parseInt(row.querySelector('.ospf-cost').value) || null,
+                    auth_key: row.querySelector('.ospf-authen-key').value.trim() || null
+                };
+                const hello = row.querySelector('.ospf-hello');
+                const dead = row.querySelector('.ospf-dead');
+                if (hello && hello.value) intObj.hello = parseInt(hello.value);
+                if (dead && dead.value) intObj.dead = parseInt(dead.value);
+                ospfConfig.interfaces.push(intObj);
+            }
+        });
+
+        // Gom OSPF Redistribute
+        document.querySelectorAll('#ospf-redistribute-container .ospf-redis-row').forEach(row => {
+            const proto = row.querySelector('.ospf-redis-proto').value.trim();
+            if(proto) {
+                ospfConfig.redistributes.push({
+                    protocol: proto,
+                    metric: parseInt(row.querySelector('.ospf-redis-metric').value) || null
+                });
+            }
+        });
+
+        data.ospf = ospfConfig;
+    }
+
+    // 5. Gom BGP
+if (document.getElementById('chk-bgp') && document.getElementById('chk-bgp').checked) {
+        const localAsInput = document.getElementById('bgp_local_as');
+        const bgpRouterIdInput = document.getElementById('bgp_router_id');
+        
+        const bgpConfig = {
+            local_as: localAsInput ? parseInt(localAsInput.value) : 65000,
+            router_id: bgpRouterIdInput && bgpRouterIdInput.value.trim() ? bgpRouterIdInput.value.trim() : null,
+            networks: [],
+            neighbors: [],
+            redistributes: [],
+            summaries: []
+        };
+
+        // Gom BGP Networks
+        document.querySelectorAll('.bgp-net-row').forEach(row => {
+            const net = row.querySelector('.bgp-net-ip').value.trim();
+            if(net) bgpConfig.networks.push(net);
+        });
+
+        // Gom BGP Neighbors Nâng cao
+        document.querySelectorAll('.bgp-neigh-row').forEach(row => {
+            const ip = row.querySelector('.bgp-ip').value.trim();
+            if(ip) {
+                bgpConfig.neighbors.push({
+                    ip: ip,
+                    remote_as: parseInt(row.querySelector('.bgp-as').value) || 0,
+                    route_reflector_client: row.querySelector('.bgp-rr').checked,
+                    weight: parseInt(row.querySelector('.bgp-weight').value) || null,
+                    set_local_pref: parseInt(row.querySelector('.bgp-lp').value) || null,
+                    set_med: parseInt(row.querySelector('.bgp-med').value) || null,
+                    set_as_path_prepend: row.querySelector('.bgp-prepend').value.trim() || null
+                });
+            }
+        });
+
+        // Gom BGP Redistribute (Sử dụng class chung với form ospf redis)
+        document.querySelectorAll('#bgp-redistribute-container .ospf-redis-row').forEach(row => {
+            const proto = row.querySelector('.ospf-redis-proto').value.trim();
+     
+
+
+       if(proto) {
+                bgpConfig.redistributes.push({
+                    protocol: proto,
+                    metric: parseInt(row.querySelector('.ospf-redis-metric').value) || null
+                });
+            }
+        });
+
+        // Gom BGP Summary (Aggregate)
+        document.querySelectorAll('.bgp-sum-row').forEach(row => {
+            const ip = row.querySelector('.bgp-sum-ip').value.trim();
+            if(ip) {
+                bgpConfig.summaries.push({
+                    network: ip,
+                    mask: row.querySelector('.bgp-sum-mask').value.trim()
+                });
+            }
+        });
+
+        data.bgp = bgpConfig;
+    }
 
     console.log("📦 Dữ liệu Module 1:", data);
     window.callAPI('/api/config/module1-routing', data, 'btn-mod1');
