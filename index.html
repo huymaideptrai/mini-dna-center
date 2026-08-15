@@ -216,26 +216,19 @@
         <div id="Mod2" class="tabcontent" style="display: none;">
 
             <!-- Form HSRP/VRRP/GLBP -->
-<div class="row align-items-end mb-3 pe-3">
-    <div class="col-md-3 mb-2">
-        <label class="form-label small fw-bold text-muted">Protocol</label>
-        <select class="form-select fhrp-protocol" onchange="toggleFhrpFields(this)">
-            <option value="hsrp">HSRP</option>
-            <option value="vrrp">VRRP</option>
-            <option value="glbp">GLBP</option>
-        </select>
-    </div>
-    <div class="col-md-3 mb-2"><label class="form-label small fw-bold text-muted">Interface</label><input type="text" class="form-control fhrp-int" placeholder="VD: G0/1"></div>
-    <div class="col-md-2 mb-2"><label class="form-label small fw-bold text-muted">Group ID</label><input type="number" class="form-control fhrp-grp" value="1"></div>
-    <div class="col-md-4 mb-2"><label class="form-label small fw-bold text-muted">Virtual IP</label><input type="text" class="form-control fhrp-vip" placeholder="VD: 192.168.1.1"></div>
-</div>
-<!-- Các trường mở rộng (ẩn/hiện theo protocol) -->
-<div class="row pe-3 fhrp-extra-fields">
-    <div class="col-md-3 mb-2"><label class="form-label small fw-bold text-muted">Priority</label><input type="number" class="form-control fhrp-pri" value="100"></div>
-    <div class="col-md-3 mb-2 vrrp-only d-none"><label class="form-label small fw-bold text-muted">Adv. Interval (ms)</label><input type="number" class="form-control fhrp-adv" value="1000"></div>
-    <div class="col-md-3 mb-2 glbp-only d-none"><label class="form-label small fw-bold text-muted">Load Balancing</label><select class="form-select fhrp-lb"><option value="round-robin">Round-Robin</option><option value="weighted">Weighted</option></select></div>
-</div>
-
+<div class="card mb-4 border-secondary shadow-sm mt-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold" style="color: #d35400;">CẤU HÌNH DỰ PHÒNG CỔNG (FHRP)</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Đây là cái hộp rỗng chờ JS nhét code vào -->
+                    <div id="hsrp-container" class="mb-2"></div> 
+                    
+                    <!-- Nút bấm gọi hàm JS đẻ ra form -->
+                    <button type="button" class="btn btn-outline-warning btn-sm fw-bold mb-2 text-dark" onclick="addHsrpRow()">+ Thêm cấu hình FHRP</button>
+                </div>
+            </div>
+            
             <!-- KHU VỰC A: IPSEC CRYPTO -->
             <div class="card mb-4 border-secondary shadow-sm">
                 <div class="card-header bg-light">
