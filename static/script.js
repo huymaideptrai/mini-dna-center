@@ -770,6 +770,94 @@ window.addNatStaticRow = function() {
     container.appendChild(row);
 };
 
+window.addAclRow = function() {
+    const container = document.getElementById('acl-container');
+    if (!container) return;
+    
+    const uniqueId = 'acl_' + Date.now(); // Tạo ID ngẫu nhiên cho mỗi ACL
+    const row = document.createElement('div');
+    row.className = 'acl-group-row card mb-3 border-primary shadow-sm';
+    row.innerHTML = `
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
+            <span class="fw-bold"><i class="bi bi-shield-lock"></i> Cấu hình Access List</span>
+            <button type="button" class="btn btn-sm btn-danger py-0" onclick="this.closest('.card').remove()">Xóa ACL này</button>
+        </div>
+        <div class="card-body bg-light">
+            <div class="row mb-3 pb-3 border-bottom border-secondary">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold text-dark">Tên / Số ACL</label>
+                    <input type="text" class="form-control acl-name" placeholder="VD: 100 hoặc LAN_ACL">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold text-dark">Loại ACL</label>
+                    <select class="form-select border-primary acl-type" onchange="toggleAclType('${uniqueId}', this.value)">
+                        <option value="standard">Standard (Chỉ có IP Nguồn)</option>
+                        <option value="extended">Extended (Có Đích & Port)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="bg-white p-3 rounded border">
+                <h6 class="fw-bold mb-3 text-secondary">Danh sách Luật (Rules / Networks):</h6>
+                <!-- Nơi chứa các Rule của riêng ACL này -->
+                <div id="rule-container-${uniqueId}"></div>
+                
+                <button type="button" class="btn btn-sm btn-secondary mt-2" onclick="addAclRuleRow('${uniqueId}')">+ Thêm Rule</button>
+            </div>
+        </div>
+    `;
+    container.appendChild(row);
+    
+    // Tự động thêm sẵn 1 dòng Rule trắng khi vừa tạo ACL
+    addAclRuleRow(uniqueId);
+};
+
+// 2. Thêm một dòng Rule (Network) vào trong một ACL cụ thể
+window.addAclRuleRow = function(aclId) {
+    const container = document.getElementById(`rule-container-${aclId}`);
+    if(!container) return;
+    
+    // Kiểm tra xem ACL mẹ đang là Standard hay Extended để ẩn hiện các ô tương ứng
+    const aclCard = container.closest('.acl-group-row');
+    const aclType = aclCard.querySelector('.acl-type').value;
+    const extClass = (aclType === 'extended') ? '' : 'd-none';
+
+    const row = document.createElement('div');
+    row.className = 'acl-rule-row row align-items-center mb-2 pb-2 border-bottom';
+    row.innerHTML = `
+        <div class="col-11">
+            <!-- Hàng 1: Nguồn -->
+            <div class="row align-items-end mb-1">
+                <div class="col-md-2 mb-1"><label class="small fw-bold text-muted">Hành động</label><select class="form-select form-select-sm acl-action"><option value="permit">Permit</option><option value="deny">Deny</option></select></div>
+                <div class="col-md-2 mb-1 acl-ext-field ${extClass}"><label class="small fw-bold text-danger">Giao thức</label><select class="form-select form-select-sm acl-proto"><option value="ip">IP</option><option value="tcp">TCP</option><option value="udp">UDP</option></select></div>
+                <div class="col-md-4 mb-1"><label class="small fw-bold text-muted">IP Nguồn (Source)</label><input type="text" class="form-control form-control-sm acl-src-ip" placeholder="VD: 192.168.1.0 hoặc any"></div>
+                <div class="col-md-4 mb-1"><label class="small fw-bold text-muted">Wildcard Mask Nguồn</label><input type="text" class="form-control form-control-sm acl-src-mask" placeholder="VD: 0.0.0.255"></div>
+            </div>
+            <!-- Hàng 2: Đích (Chỉ hiện khi Extended) -->
+            <div class="row align-items-end acl-ext-field ${extClass}">
+                <div class="col-md-4 mb-1"><label class="small fw-bold text-danger">IP Đích (Destination)</label><input type="text" class="form-control form-control-sm acl-dst-ip" placeholder="VD: 8.8.8.8 hoặc any"></div>
+                <div class="col-md-4 mb-1"><label class="small fw-bold text-danger">Wildcard Mask Đích</label><input type="text" class="form-control form-control-sm acl-dst-mask" placeholder="VD: 0.0.0.0"></div>
+                <div class="col-md-4 mb-1"><label class="small fw-bold text-danger">Port (Tùy chọn)</label><input type="text" class="form-control form-control-sm acl-port" placeholder="VD: eq 80"></div>
+            </div>
+        </div>
+        <div class="col-1 d-flex justify-content-center">
+            <button type="button" class="btn btn-sm btn-danger fw-bold" onclick="this.closest('.acl-rule-row').remove()">X</button>
+        </div>
+    `;
+    container.appendChild(row);
+};
+
+// 3. Hàm bật/tắt các ô Extended khi đổi loại ACL
+window.toggleAclType = function(aclId, type) {
+    const ruleContainer = document.getElementById(`rule-container-${aclId}`);
+    if(!ruleContainer) return;
+    const extFields = ruleContainer.querySelectorAll('.acl-ext-field');
+    extFields.forEach(field => {
+        if(type === 'extended') field.classList.remove('d-none');
+        else field.classList.add('d-none');
+    });
+};
+
 window.addQosClassRow = function() {
     const container = document.getElementById('qos-class-container');
     if (!container) return;
@@ -815,6 +903,32 @@ window.sendModule3 = function() {
     const outsideInts = [];
     document.querySelectorAll('.outside-row input').forEach(inp => { if(inp.value.trim()) outsideInts.push(inp.value.trim()); });
 
+    // --- Gom dữ liệu ACL Động ---
+    const acls = [];
+    document.querySelectorAll('.acl-group-row').forEach(aclRow => {
+        const name = aclRow.querySelector('.acl-name').value.trim();
+        const type = aclRow.querySelector('.acl-type').value;
+        if (!name) return; // Bỏ qua nếu không nhập tên ACL
+        
+        const rules = [];
+        aclRow.querySelectorAll('.acl-rule-row').forEach(ruleRow => {
+            const rule = {
+                action: ruleRow.querySelector('.acl-action').value,
+                src_ip: ruleRow.querySelector('.acl-src-ip').value.trim(),
+                src_mask: ruleRow.querySelector('.acl-src-mask').value.trim()
+            };
+            // Chỉ lấy Đích/Port nếu là Extended
+            if (type === 'extended') {
+                rule.protocol = ruleRow.querySelector('.acl-proto').value;
+                rule.dst_ip = ruleRow.querySelector('.acl-dst-ip').value.trim();
+                rule.dst_mask = ruleRow.querySelector('.acl-dst-mask').value.trim();
+                rule.port = ruleRow.querySelector('.acl-port').value.trim();
+            }
+            rules.push(rule);
+        });
+        acls.push({ name: name, type: type, rules: rules });
+    });
+
     const data = {
         target_ip: targetIp,
         nat: {
@@ -827,6 +941,7 @@ window.sendModule3 = function() {
             },
             static: staticNat
         },
+        acl: acls,
         qos: {
             policy_name: document.getElementById('m3_qos_policy') ? document.getElementById('m3_qos_policy').value.trim() : "",
             apply_interface: document.getElementById('m3_qos_int') ? document.getElementById('m3_qos_int').value.trim() : "",
