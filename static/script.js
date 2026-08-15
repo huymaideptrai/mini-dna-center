@@ -756,14 +756,15 @@ window.addNatStaticRow = function() {
     const container = document.getElementById('nat-static-container');
     if (!container) return;
     const row = document.createElement('div');
-    row.className = 'nat-static-row form-grid card mb-2 border-0 shadow-sm border-start border-3 p-3 bg-white';
+    // Bỏ class 'form-grid' để Bootstrap tự chia cột
+    row.className = 'nat-static-row card mb-2 border-0 shadow-sm border-start border-3 p-3 bg-white';
     row.style.cssText = 'border-color: #9b59b6 !important; position: relative;';
     row.innerHTML = `
         <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 px-2 py-0" onclick="this.closest('.card').remove()">X</button>
         <div class="row align-items-end pe-3">
-            <div class="col-md-4 mb-2"><label class="small fw-bold text-muted">IP Inside</label><input type="text" class="form-control nat-in-ip" placeholder="VD: 192.168.1.10"></div>
-            <div class="col-md-4 mb-2"><label class="small fw-bold text-muted">IP Outside</label><input type="text" class="form-control nat-out-ip" placeholder="VD: 8.8.8.8"></div>
-            <div class="col-md-4 mb-2"><label class="small fw-bold text-muted">Port (Tùy chọn)</label><input type="number" class="form-control nat-port" placeholder="VD: 80"></div>
+            <div class="col-md-4 mb-2"><label class="form-label small fw-bold text-muted">IP Inside (Local)</label><input type="text" class="form-control nat-in-ip" placeholder="VD: 192.168.1.10"></div>
+            <div class="col-md-4 mb-2"><label class="form-label small fw-bold text-muted">IP Outside (Global)</label><input type="text" class="form-control nat-out-ip" placeholder="VD: 8.8.8.8"></div>
+            <div class="col-md-4 mb-2"><label class="form-label small fw-bold text-muted">Port (Tùy chọn)</label><input type="number" class="form-control nat-port" placeholder="VD: 80"></div>
         </div>
     `;
     container.appendChild(row);
@@ -822,8 +823,7 @@ window.sendModule3 = function() {
             outside_interfaces: outsideInts,
             dynamic: {
                 acl_name: document.getElementById('m3_nat_acl') ? document.getElementById('m3_nat_acl').value.trim() : "NAT_ACL",
-                network: document.getElementById('m3_nat_net') ? document.getElementById('m3_nat_net').value.trim() : "",
-                wildcard: document.getElementById('m3_nat_wild') ? document.getElementById('m3_nat_wild').value.trim() : ""
+                interface: document.getElementById('m3_nat_int') ? document.getElementById('m3_nat_int').value.trim() : ""
             },
             static: staticNat
         },
