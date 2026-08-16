@@ -1281,3 +1281,92 @@ window.sendModule4 = function() {
     console.log("📦 Dữ liệu Module 4:", data);
     window.callAPI('/api/config/module4-services', data, 'btn-mod4');
 };
+
+// ==========================================
+// MODULE 5: GIÁM SÁT (TELEMETRY / MONITOR)
+// ==========================================
+let monitorInterval = null;
+
+window.toggleMonitoring = function() {
+    const btn = document.getElementById('btn-start-monitor');
+    const targetIp = document.getElementById('target_router_ip').value.trim();
+    
+    if (!targetIp) { alert("⚠️ Vui lòng nhập 'Địa chỉ IP Router' trước khi giám sát!"); return; }
+
+    if (monitorInterval) {
+        // Tắt giám sát
+        clearInterval(monitorInterval);
+        monitorInterval = null;
+        btn.innerHTML = "▶ Bắt đầu Giám sát";
+        btn.className = "btn btn-sm btn-light fw-bold text-info shadow-sm";
+    } else {
+        // Bật giám sát
+        btn.innerHTML = "🛑 Dừng Giám sát";
+        btn.className = "btn btn-sm btn-danger fw-bold shadow-sm";
+        
+        // Cập nhật ngay lập tức 1 lần, sau đó lặp lại mỗi 5 giây (5000ms)
+        fetchMonitorData(targetIp);
+        monitorInterval = setInterval(() => fetchMonitorData(targetIp), 5000);
+    }
+};
+
+window.fetchMonitorData = async function(ip) {
+    try {
+        // Gọi API Backend (Bạn sẽ cần viết endpoint này trong FastAPI sau)
+        const response = await fetch(`/api/monitor?ip=${ip}`);
+        if (!response.ok) return;
+        const data = await response.json();
+        
+        // 1. Cập nhật CPU
+        if (data.cpu !== undefined) {
+            document.getElementById('mon-cpu-text').innerText = data.cpu + '%';
+            document.getElementById('mon-cpu-bar').style.width = data.cpu + '%';
+            // Đổi màu thanh CPU nếu quá tải
+            document.getElementById('mon-cpu-bar').className = data.cpu > 80 
+                ? 'progress-bar bg-danger progress-bar-striped progress-bar-animated' 
+                : 'progress-bar bg-primary progress-bar-striped progress-bar-animated';
+        }
+        
+        // 2. Cập nhật RAM
+        if (data.ram_percent !== undefined) {
+            document.getElementById('mon-ram-text').innerText = data.ram_percent + '%';
+            document.getElementById('mon-ram-bar').style.width = data.ram_percent + '%';
+            document.getElementById('mon-ram-detail').innerText = `${data.ram_used} / ${data.ram_total} MB`;
+        }
+        
+        // 3. Cập nhật Uptime & Temp
+        if (data.uptime) document.getElementById('mon-uptime').innerText = data.uptime;
+        if (data.temp) document.getElementById('mon-temp').innerText = data.temp + ' °C';
+
+        // 4. In Syslog mới ra màn hình Terminal giả lập
+        if (data.syslogs && data.syslogs.length > 0) {
+            const syslogBox = document.getElementById('mon-syslog');
+            
+            // Xóa dòng "Đang chờ..." nếu là lần đầu có log
+            if(syslogBox.innerHTML.includes("Đang chờ tín hiệu")) syslogBox.innerHTML = '';
+
+            data.syslogs.forEach(log => {
+                const span = document.createElement('span');
+                // Tô màu log tự động dựa trên từ khóa hệ thống Cisco
+                if (log.includes('%SYS-') || log.includes('-ERR-') || log.includes('DOWN')) {
+                    span.className = 'text-danger fw-bold';
+                } else if (log.includes('-WARN-')) {
+                    span.className = 'text-warning';
+                } else if (log.includes('UPDOWN') || log.includes('UP')) {
+                    span.className = 'text-success';
+                } else {
+                    span.className = 'text-light';
+                }
+                
+                span.innerText = `[${new Date().toLocaleTimeString()}] ${log}`;
+                syslogBox.appendChild(span);
+                syslogBox.appendChild(document.createElement('br'));
+            });
+            // Tự động cuộn xuống dưới cùng để xem log mới nhất
+            syslogBox.scrollTop = syslogBox.scrollHeight;
+        }
+
+    } catch (error) {
+        console.error("Mất kết nối với Router hoặc API Backend:", error);
+    }
+};
