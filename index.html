@@ -30,6 +30,7 @@
             <button class="tablinks" onclick="openTab(event, 'Mod2')">2. VPN</button>
             <button class="tablinks" onclick="openTab(event, 'Mod3')">3. PROTOCOL</button>
             <button class="tablinks" onclick="openTab(event, 'Mod4')">4. SERVICE</button>
+            <button class="tablinks" onclick="openTab(event, 'Mod5')">5. MONITOR</button>
         </div>
 
 <!-- ========================================== -->
@@ -487,6 +488,73 @@
             <button class="btn btn-info btn-lg w-100 fw-bold shadow-sm text-white" id="btn-mod4" onclick="sendModule4()">ÁP DỤNG CẤU HÌNH</button>
             
         </div> <!-- 🛑 ĐÂY MỚI LÀ NƠI CHUẨN XÁC ĐỂ ĐÓNG TAB MODULE 5 -->
+        <!-- ========================================== -->
+        <!-- TAB 5: GIÁM SÁT TRẠNG THÁI (MONITOR)       -->
+        <!-- ========================================== -->
+        <div id="Mod5" class="tabcontent" style="display: none;">
+            <div class="card mb-4 border-info shadow-sm mt-3">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">📊 GIÁM SÁT TRẠNG THÁI (TELEMETRY)</h5>
+                    <button class="btn btn-sm btn-light fw-bold text-info shadow-sm" id="btn-start-monitor" onclick="toggleMonitoring()">▶ Bắt đầu Giám sát</button>
+                </div>
+                <div class="card-body bg-light">
+                    <!-- Hàng 1: CPU, RAM, UPTIME -->
+                    <div class="row mb-4">
+                        <!-- CPU -->
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <div class="card border-0 shadow-sm h-100 border-start border-3 border-primary">
+                                <div class="card-body text-center">
+                                    <h6 class="fw-bold text-secondary mb-3">CPU Usage</h6>
+                                    <h2 id="mon-cpu-text" class="text-primary mb-3">0%</h2>
+                                    <div class="progress" style="height: 12px;">
+                                        <div id="mon-cpu-bar" class="progress-bar bg-primary progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- RAM -->
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <div class="card border-0 shadow-sm h-100 border-start border-3 border-success">
+                                <div class="card-body text-center">
+                                    <h6 class="fw-bold text-secondary mb-3">RAM Usage</h6>
+                                    <h2 id="mon-ram-text" class="text-success mb-3">0%</h2>
+                                    <div class="progress" style="height: 12px; margin-bottom: 5px;">
+                                        <div id="mon-ram-bar" class="progress-bar bg-success progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                                    </div>
+                                    <small id="mon-ram-detail" class="text-muted fw-bold">0 / 0 MB</small>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Uptime & Temp -->
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm h-100 border-start border-3 border-warning">
+                                <div class="card-body text-center d-flex flex-column justify-content-center">
+                                    <h6 class="fw-bold text-secondary">Uptime</h6>
+                                    <h4 id="mon-uptime" class="text-dark">00:00:00</h4>
+                                    <hr class="my-2" style="opacity: 0.1;">
+                                    <h6 class="fw-bold text-secondary">Nhiệt độ (Temp)</h6>
+                                    <h4 id="mon-temp" class="text-danger">-- °C</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hàng 2: Syslog Terminal -->
+                    <div class="card border-0 shadow-sm bg-dark text-light">
+                        <div class="card-header border-bottom border-secondary d-flex justify-content-between align-items-center py-2" style="background: #1a1a1a;">
+                            <span class="fw-bold text-warning">💻 Live Syslog Terminal</span>
+                            <button class="btn btn-sm btn-outline-light py-0" onclick="document.getElementById('mon-syslog').innerHTML = ''">Clear</button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div id="mon-syslog" style="height: 300px; overflow-y: auto; font-family: Consolas, monospace; font-size: 13px; padding: 15px; line-height: 1.6;">
+                                <span class="text-muted">Đang chờ tín hiệu giám sát từ Router...</span><br>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
 
     </div> <!-- ĐÂY LÀ NƠI CHUẨN XÁC ĐỂ ĐÓNG HỘP TRẮNG LỚN TỔNG -->
 
