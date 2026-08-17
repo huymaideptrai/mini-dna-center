@@ -21,6 +21,37 @@
       loop: "{{ eigrp }}"
       when: eigrp is defined and (eigrp | length > 0)
 
+    - name: Cau hinh EIGRP Global Parameters
+      cisco.ios.ios_config:
+        parents: "router eigrp {{ eigrp_data.asn }}"
+        lines:
+
+          - "network {{ item }}"
+        after:
+          - "{% if eigrp_data.router_id is not none %}eigrp router-id {{ eigrp_data.router_id }}{% endif %}"
+          - "{% if eigrp_data.k_values is not none %}metric weights {{ eigrp_data.k_values }}{% endif %}"
+          - "{% if eigrp_data.variance is not none %}variance {{ eigrp_data.variance }}{% endif %}"
+          - "{% if eigrp_data.redistribute is not none %}redistribute {{ eigrp_data.redistribute }}{% endif %}"
+      loop: "{{ eigrp_data.networks }}"
+
+    - name: Cau hinh EIGRP Passive Interfaces
+      cisco.ios.ios_config:
+        parents: "router eigrp {{ eigrp_data.asn }}"
+        lines:
+          - "passive-interface {{ item }}"
+      loop: "{{ eigrp_data.passive_interfaces | default([]) }}"
+
+    - name: Cau hinh EIGRP tren tung Interface
+      cisco.ios.ios_config:
+        parents: "interface {{ item.name }}"
+        lines:
+          - "{% if item.hello_interval is not none %}ip hello-interval eigrp {{ eigrp_data.asn }} {{ item.hello_interval }}{% endif %}"
+          - "{% if item.hold_time is not none %}ip hold-time eigrp {{ eigrp_data.asn }} {{ item.hold_time }}{% endif %}"
+          - "{% if item.auth_keychain is not none %}ip authentication mode eigrp {{ eigrp_data.asn }} md5{% endif %}"
+          - "{% if item.auth_keychain is not none %}ip authentication key-chain eigrp {{ eigrp_data.asn }} {{ item.auth_keychain }}{% endif %}"
+          - "{% if item.summary_address is not none %}ip summary-address eigrp {{ eigrp_data.asn }} {{ item.summary_address }}{% endif %}"
+      loop: "{{ eigrp_data.interfaces | default([]) }}"
+
     # 3. IS-IS
     - name: Cau hinh IS-IS NET
       cisco.ios.ios_config:
