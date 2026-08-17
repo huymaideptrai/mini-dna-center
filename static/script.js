@@ -281,6 +281,111 @@ window.toggleRouting = function(proto) {
     }
 };
 
+window.addNetworkField = function() {
+    const container = document.getElementById('networkContainer');
+    const div = document.createElement('div');
+    div.className = 'input-group mb-2';
+    div.innerHTML = `
+        <input type="text" class="form-control network-input" placeholder="VD: 10.0.0.0 0.255.255.255">
+        <button class="btn btn-danger" type="button" onclick="this.parentElement.remove()">Xóa</button>
+    `;
+    container.appendChild(div);
+};
+
+// 2. Thêm form cấu hình Interface (Timer, Auth, Summary)
+window.addInterfaceField = function() {
+    const container = document.getElementById('interfaceContainer');
+    const div = document.createElement('div');
+    div.className = 'border p-3 mb-3 bg-light rounded interface-box';
+    div.innerHTML = `
+        <div class="d-flex justify-content-between mb-2">
+            <strong>Cấu hình Cổng</strong>
+            <button class="btn btn-sm btn-danger" type="button" onclick="this.parentElement.parentElement.remove()">Xóa cổng này</button>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-2">
+                <label class="form-label">Tên Cổng (*)</label>
+                <input type="text" class="form-control int-name" placeholder="GigabitEthernet0/1">
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label">Hello / Hold Interval</label>
+                <div class="input-group">
+                    <input type="number" class="form-control int-hello" placeholder="Hello">
+                    <input type="number" class="form-control int-hold" placeholder="Hold">
+                </div>
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label">Auth Keychain (MD5)</label>
+                <input type="text" class="form-control int-auth" placeholder="VD: MY_KEY">
+            </div>
+            <div class="col-md-12">
+                <label class="form-label">IP Summary Address</label>
+                <input type="text" class="form-control int-summary" placeholder="VD: 172.16.0.0 255.255.0.0">
+            </div>
+        </div>
+    `;
+    container.appendChild(div);
+};
+
+// 3. Hàm thu thập dữ liệu và gửi đi (Gửi API)
+window.submitEigrpConfig = async function() {
+    // Thu thập danh sách Networks
+    const networks = Array.from(document.querySelectorAll('.network-input'))
+                        .map(input => input.value.trim())
+                        .filter(val => val !== "");
+
+    // Cắt chuỗi Passive Interface thành mảng
+    const passiveStr = document.getElementById('eigrpPassive').value;
+    const passiveInterfaces = passiveStr ? passiveStr.split(',').map(s => s.trim()) : [];
+
+    // Thu thập cấu hình Interfaces
+    const interfaces = [];
+    document.querySelectorAll('.interface-box').forEach(box => {
+        const name = box.querySelector('.int-name').value.trim();
+        if (name) {
+            interfaces.push({
+                name: name,
+                hello_interval: box.querySelector('.int-hello').value ? parseInt(box.querySelector('.int-hello').value) : null,
+                hold_time: box.querySelector('.int-hold').value ? parseInt(box.querySelector('.int-hold').value) : null,
+                auth_keychain: box.querySelector('.int-auth').value || null,
+                summary_address: box.querySelector('.int-summary').value || null
+            });
+        }
+    });
+
+    // Gom thành 1 object JSON hoàn chỉnh khớp với Pydantic Model
+    const payload = {
+        asn: parseInt(document.getElementById('eigrpAsn').value),
+        router_id: document.getElementById('eigrpRouterId').value || null,
+        networks: networks,
+        variance: document.getElementById('eigrpVariance').value ? parseInt(document.getElementById('eigrpVariance').value) : null,
+        k_values: document.getElementById('eigrpKValues').value || null,
+        passive_interfaces: passiveInterfaces.length > 0 ? passiveInterfaces : null,
+        redistribute: document.getElementById('eigrpRedistribute').value || null,
+        interfaces: interfaces
+    };
+
+    // Log ra xem thử JSON đã chuẩn chưa
+    console.log("Dữ liệu gửi lên FastAPI:", JSON.stringify(payload, null, 2));
+
+    // Thực hiện Fetch API gửi xuống FastAPI (Lưu ý sửa lại URL port nếu cần)
+    try {
+        const response = await fetch('/api/eigrp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        if (response.ok) {
+            alert("Đã gửi cấu hình EIGRP thành công!");
+        } else {
+            alert("Lỗi khi gửi cấu hình!");
+        }
+    } catch (error) {
+        console.error("Lỗi:", error);
+    }
+};
+
 // --- CÁC HÀM TẠO FORM GIAO THỨC MỚI ---
 window.addStaticRow = function() {
     const container = document.getElementById('static-container');
