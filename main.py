@@ -116,7 +116,25 @@ class BGPConfig(BaseModel):
     networks: List[str] = []
     neighbors: List[BgpNeighbor] = []
     redistributes: List[RedistributeConfig] = []
-    summaries: List[SummaryConfig] = []         # (aggregate-address trong BGP)
+    summaries: List[SummaryConfig] = []
+
+class EIGRPInterface(BaseModel):   
+    name: str
+    hello_interval: Optional[int] = None
+    hold_time: Optional[int] = None
+    auth_keychain: Optional[str] = None
+    summary_address: Optional[str] = None
+
+
+class EIGRPConfig(BaseModel):
+    asn: int
+    router_id: Optional[str] = None
+    networks: List[str]
+    k_values: Optional[str] = None
+    variance: Optional[int] = None
+    passive_interfaces: Optional[List[str]] = None
+    redistribute: Optional[str] = None
+    interfaces: Optional[List[EIGRPInterface]] = []
 
 class EigrpItem(BaseModel):
     asn: int
