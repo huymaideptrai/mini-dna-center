@@ -406,24 +406,6 @@ window.addStaticRow = function() {
     container.appendChild(row);
 };
 
-window.addEigrpRow = function() {
-    const container = document.getElementById('eigrp-container');
-    if(!container) return;
-    const row = document.createElement('div');
-    row.className = 'eigrp-row card mb-2 border-0 shadow-sm';
-    row.innerHTML = `
-        <div class="card-body position-relative border-start border-3 border-success p-3 bg-white">
-            <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-0 px-2" onclick="this.closest('.card').remove()">X</button>
-            <div class="row align-items-end pt-2 pe-3">
-                <div class="col-md-3 mb-2"><label class="form-label small fw-bold text-muted">AS Number</label><input type="number" class="form-control eigrp-asn" value="100"></div>
-                <div class="col-md-5 mb-2"><label class="form-label small fw-bold text-muted">Network</label><input type="text" class="form-control eigrp-net" placeholder="VD: 10.0.0.0"></div>
-                <div class="col-md-4 mb-2"><label class="form-label small fw-bold text-muted">Wildcard Mask</label><input type="text" class="form-control eigrp-wild" placeholder="VD: 0.0.0.255"></div>
-            </div>
-        </div>
-    `;
-    container.appendChild(row);
-};
-
 window.addIsisRow = function() {
     const container = document.getElementById('isis-container');
     if(!container) return;
